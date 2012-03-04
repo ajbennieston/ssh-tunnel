@@ -33,12 +33,12 @@ Requirements:
 -------------
  1. public key (or other passwordless) access to the host being used as the
     remote end of the dynamic forwarding. This can be done with passwordless
-	keys (not recommended) or keys which are available in an ssh-agent that
-	is in the environment of ssh-tunneld.
+    keys (not recommended) or keys which are available in an ssh-agent that
+    is in the environment of ssh-tunneld.
 
  2. netcat-openbsd (the OpenBSD version of netcat, rather than
     netcat-traditional). This is required for the "-x" and "-X"
-	(SOCKS proxy) options to the "nc" program to work.
+    (SOCKS proxy) options to the "nc" program to work.
 
  3. (Dynamic) SSH forwarding enabled on the proxy host (remote host of the
     "ssh -D" command). Note this also requires SSH Protocol version 2.
@@ -57,20 +57,20 @@ Usage:
 
  4. Start the ssh-tunneld. Typing ssh-tunneld will show usage information.
     At the minimum, you need to provide the hostname to connect to when
-	setting up dynamic port forwarding:
-	ssh-tunneld somehost.somedomain.tld
+    setting up dynamic port forwarding:
+    ssh-tunneld somehost.somedomain.tld
  
  5. Add an entry in $HOME/.ssh/config for the host you want to connect to
     through the tunnel. Include the following command:
-	ProxyCommand ssh-tunnelc %h %p
-	(You can specify additional options; typing ssh-tunnelc will print usage).
+    ProxyCommand ssh-tunnelc %h %p
+    (You can specify additional options; typing ssh-tunnelc will print usage).
 
  6. Use ssh to connect to the host you created the above entry for. ssh will
     launch ssh-tunnelc, which will communicate with ssh-tunneld. ssh-tunneld
-	will create a tunnel, which ssh-tunnelc will use (with the help of nc)
-	for the ssh connection you're trying to start. When you're done, logout
-	as normal, and ssh-tunnelc will tell ssh-tunneld to tear down the tunnel
-	(unless something else is still using it).
+    will create a tunnel, which ssh-tunnelc will use (with the help of nc)
+    for the ssh connection you're trying to start. When you're done, logout
+    as normal, and ssh-tunnelc will tell ssh-tunneld to tear down the tunnel
+    (unless something else is still using it).
 
 --------
 License:
