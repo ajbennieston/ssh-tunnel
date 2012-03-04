@@ -46,7 +46,31 @@ Requirements:
 ------
 Usage:
 ------
-TODO: Write this section.
+ 1. Type 'make' to build the client (ssh-tunnelc) and server (ssh-tunneld) in
+    their respective directories.
+ 
+ 2. Copy the binaries ssh-tunnelc/ssh-tunnelc and ssh-tunneld/ssh-tunneld to
+    somewhere in your $PATH.
+
+ 3. Ensure that the ssh-agent has an unlocked copy of the private key for the
+    host you want to tunnel through (or use passwordless keys; not recommended).
+
+ 4. Start the ssh-tunneld. Typing ssh-tunneld will show usage information.
+    At the minimum, you need to provide the hostname to connect to when
+	setting up dynamic port forwarding:
+	ssh-tunneld somehost.somedomain.tld
+ 
+ 5. Add an entry in $HOME/.ssh/config for the host you want to connect to
+    through the tunnel. Include the following command:
+	ProxyCommand ssh-tunnelc %h %p
+	(You can specify additional options; typing ssh-tunnelc will print usage).
+
+ 6. Use ssh to connect to the host you created the above entry for. ssh will
+    launch ssh-tunnelc, which will communicate with ssh-tunneld. ssh-tunneld
+	will create a tunnel, which ssh-tunnelc will use (with the help of nc)
+	for the ssh connection you're trying to start. When you're done, logout
+	as normal, and ssh-tunnelc will tell ssh-tunneld to tear down the tunnel
+	(unless something else is still using it).
 
 --------
 License:
