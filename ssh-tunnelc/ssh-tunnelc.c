@@ -17,7 +17,7 @@ void connection_start(const char* hostname, const char* port);
 void connection_stop(const char* hostname, const char* port);
 void sig_handler(int signum);
 void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_port,
-	char** tun_port, char** ssh_host, char** ssh_port);
+                       char** tun_port, char** ssh_host, char** ssh_port);
 
 char* tunneld_host;
 char* tunneld_port;
@@ -219,7 +219,7 @@ void sig_handler(int signum)
 }
 
 void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_port,
-	char** tun_port, char** ssh_host, char** ssh_port)
+                       char** tun_port, char** ssh_host, char** ssh_port)
 {
 	/*
 	 * Usage: progname [-h hostname] [-p port] [-t port] ssh_hostname ssh_port
