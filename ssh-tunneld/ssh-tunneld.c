@@ -30,9 +30,9 @@
  */
 FILE* logfile;
 
-pid_t start_ssh_tunnel(char* hostname, char* proxy_port);
+pid_t start_ssh_tunnel(char* hostname, char* port, char* proxy_port);
 void stop_ssh_tunnel(pid_t process_id);
-int tunneld_main();
+int tunneld_main(char* ssh_hostname,char* ssh_port, char* proxy_port, char* tunneld_port);
 void write_log_connect(int num_connections);
 void write_log(const char* message);
 void print_usage(const char* program_name);
@@ -53,7 +53,7 @@ void sig_handler(int signum)
 	}
 }
 
-pid_t start_ssh_tunnel(char* hostname, char* proxy_port)
+pid_t start_ssh_tunnel(char* hostname, char* port, char* proxy_port)
 {
 	write_log("Starting ssh process.");
 	char* argv[] = {
@@ -63,6 +63,8 @@ pid_t start_ssh_tunnel(char* hostname, char* proxy_port)
 		"-N",
 		"-D",
 		proxy_port,
+		"-p",
+		port,
 		hostname,
 		NULL
 	};
@@ -97,7 +99,7 @@ void stop_ssh_tunnel(pid_t process_id)
 	wait(NULL);
 }
 
-int tunneld_main()
+int tunneld_main(char* ssh_hostname,char* ssh_port, char* proxy_port, char* tunneld_port)
 {
 	int socket_fd, new_fd; /* listen on socket_fd, accept new connections -> new_fd */
 	struct addrinfo *result, *rp; /* Structures to hold addresses from getaddrinfo() */
@@ -121,7 +123,7 @@ int tunneld_main()
 	int yes = 1;
 
 	/* Use the hints to find address(es) to bind to */
-	if(getaddrinfo(NULL, "1081", &hints, &result) != 0)
+	if(getaddrinfo(NULL, tunneld_port, &hints, &result) != 0)
 	{
 		write_log("Error looking up address. Exiting.");
 		exit(EXIT_FAILURE);
@@ -148,7 +150,7 @@ int tunneld_main()
 	if (rp == NULL)
 	{
 		/* no address was successfully bound */
-		write_log("Error binding to port 1081. Exiting.");
+		write_log("Error binding to port. Exiting.");
 		exit(EXIT_FAILURE);
 	}
 
@@ -159,7 +161,7 @@ int tunneld_main()
 	 */
 	if (listen(socket_fd, 10) == -1)
 	{
-		write_log("Error listening on port 1081. Exiting.");
+		write_log("Error listening on port. Exiting.");
 		exit(EXIT_FAILURE);
 	}
 
@@ -193,9 +195,9 @@ int tunneld_main()
 			if (n_connected == 0)
 			{
 				/* no tunnel exists; start it */
-				ssh_tunnel_process = start_ssh_tunnel("soulor", "1080");
+				ssh_tunnel_process = start_ssh_tunnel(ssh_hostname, ssh_port, proxy_port);
 				sleep(20); /* give ssh time to establish a connection */
-				/* a better approach might be to try connecting to 1080,
+				/* a better approach might be to try connecting to proxy_port,
 				 * sleep for a bit if it doesn't work, then retry.
 				 */
 			}
@@ -327,7 +329,7 @@ int main(int argc, char** argv)
 		}
 
 		/* Run tunneld_main() */
-		tunneld_main();
+		tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port);
 
 	}
 	else if (process_id > 0)
