@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <netdb.h>
 
+/* I'd like to get rid of this global variable... */
 FILE* logfile;
 
 pid_t start_ssh_tunnel(char* hostname, char* proxy_port);
@@ -81,14 +82,16 @@ void stop_ssh_tunnel(pid_t process_id)
 int tunneld_main()
 {
 	int socket_fd, new_fd; /* listen on socket_fd, accept new connections -> new_fd */
-	struct addrinfo *result, *rp;
-	struct addrinfo hints;
-	int gai_return_value;
+	struct addrinfo *result, *rp; /* Structures to hold addresses from getaddrinfo() */
+	struct addrinfo hints; /* hints to getaddrinfo() */
 	
-	char buf[1];
-	unsigned int n_connected = 0;
-	pid_t ssh_tunnel_process = 0;
+	char buf[1]; /* future-proof; if we have bigger messages we can expand this here */
+	unsigned int n_connected = 0; /* number of clients using the SSH tunnel */
+	pid_t ssh_tunnel_process = 0; /* process ID for "ssh -D ..." */
 
+	/* Hint that we want to bind to any interface...
+	 * Would be better to bind to local interface only (by default)
+	 */
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
@@ -99,12 +102,14 @@ int tunneld_main()
 	hints.ai_next = NULL;
 	int yes = 1;
 
-	if((gai_return_value = getaddrinfo(NULL, "1081", &hints, &result)) != 0)
+	/* Use the hints to find address(es) to bind to */
+	if(getaddrinfo(NULL, "1081", &hints, &result) != 0)
 	{
 		write_log("Error looking up address. Exiting.");
 		exit(EXIT_FAILURE);
 	}
 
+	/* Try to bind to an interface on requested port*/
 	for(rp = result; rp != NULL; rp = rp->ai_next)
 	{
 		socket_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -131,7 +136,9 @@ int tunneld_main()
 
 	freeaddrinfo(result); /* don't need this any more */
 
-	/* listen on the port we just bound */
+	/* listen on the port we just bound
+	 * Keep a maximum of 10 pending connections in the "backlog"
+	 */
 	if (listen(socket_fd, 10) == -1)
 	{
 		write_log("Error listening on port 1081. Exiting.");
@@ -142,6 +149,12 @@ int tunneld_main()
 	/* now accept connections and deal with them one by one */
 	while(1)
 	{
+		/*
+		 * No need to use select()... accept() blocks until a client connects, and
+		 * the processing time is typically short. In any case, if another client
+		 * connects while we're in the sleep() period waiting for an ssh tunnel,
+		 * we want to wait anyway, rather than creating a second tunnel!
+		 */
 		new_fd = accept(socket_fd, NULL, NULL); /* don't care about client address */
 		if (new_fd == -1)
 		{
@@ -149,6 +162,7 @@ int tunneld_main()
 			continue;
 		}
 
+		/* Read a message from the client to see what it wants us to do */
 		if(recv(new_fd, buf, 1, 0) != 1)
 		{
 			write_log("Received unexpected data. Closing connection.");
@@ -156,32 +170,40 @@ int tunneld_main()
 			continue;
 		}
 
-		if (buf[0] == 'C')
+		if (buf[0] == 'C') /* client wants to connect through tunnel */
 		{
 			if (n_connected == 0)
 			{
+				/* no tunnel exists; start it */
 				ssh_tunnel_process = start_ssh_tunnel("soulor", "1080");
 				sleep(20); /* give ssh time to establish a connection */
+				/* a better approach might be to try connecting to 1080,
+				 * sleep for a bit if it doesn't work, then retry.
+				 */
 			}
 			n_connected += 1;
 			write_log_connect(n_connected);
+
+			/* tell the client it can proceed */
 			char message = 'C';
 			send(new_fd, &message, sizeof(message), 0);
 		}
-		else if (buf[0] == 'D')
+		else if (buf[0] == 'D') /* client telling us it is done with tunnel */
 		{
 			n_connected -= 1;
 			write_log_connect(n_connected);
 			if (n_connected <= 0)
 			{
+				/* nothing using the tunnel any more; stop it. */
 				n_connected = 0;
 				stop_ssh_tunnel(ssh_tunnel_process);
 				ssh_tunnel_process = 0;
 			}
+			/* tell the client we acted on their message */
 			char message = 'D';
 			send(new_fd, &message, sizeof(message), 0);
 		}
-		close(new_fd);
+		close(new_fd); /* close client socket */
 	}
 
 	return 0;
@@ -196,6 +218,7 @@ void write_log_connect(int num_connections)
 
 void write_log(const char* message)
 {
+	/* write a log message that is prefixed with the current date & time */
 	if (logfile != NULL)
 	{
 		char time_string[32];
