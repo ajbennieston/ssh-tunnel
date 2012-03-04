@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	strncpy(proxy_host_port+phost_len+1, proxy_port, pport_len);
 	proxy_host_port[phost_len+pport_len+1] = '\0';
 
-	/* Send a message to csc-tunneld telling it we
+	/* Send a message to ssh-tunneld telling it we
 	 * want to open an ssh connection through the tunnel
 	 */
 	connection_start(tunneld_host, tunneld_port);
@@ -155,17 +155,17 @@ int establish_connection(const char* hostname, const char* port)
 
 void send_message(const char* hostname, const char* port, char message)
 {
-	/* Connect to csc-tunneld and deliver the message
+	/* Connect to ssh-tunneld and deliver the message
 	 * to either open or close a connection.
-	 * Expect csc-tunneld to be listening on port 1081.
+	 * Expect ssh-tunneld to be listening on port 1081.
 	 */
 	int sock_fd = establish_connection(hostname, port);
 	if (sock_fd == -1)
 	{
-		fprintf(stderr, "Could not connect to csc-tunneld running on %s:%s\n", hostname, port);
+		fprintf(stderr, "Could not connect to ssh-tunneld running on %s:%s\n", hostname, port);
 		exit(EXIT_FAILURE);
 	}
-	/* now send a message to the csc-tunneld */
+	/* now send a message to the ssh-tunneld */
 	if (send(sock_fd, &message, sizeof(message), 0) != 1)
 	{
 		perror("send");
@@ -182,7 +182,7 @@ void send_message(const char* hostname, const char* port, char message)
 	}
 	if (buffer[0] != message)
 	{
-		fprintf(stderr, "Received incorrect response from csc-tunneld. Exiting.\n");
+		fprintf(stderr, "Received incorrect response from ssh-tunneld. Exiting.\n");
 		exit(EXIT_FAILURE);
 	}
 	/* finally close the socket */
@@ -234,11 +234,11 @@ void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_po
 	 *
 	 * Options:
 	 * -h hostname
-	 *    sets proxy_host : hostname of both the SOCKS5 proxy *and* the csc-tunneld process
+	 *    sets proxy_host : hostname of both the SOCKS5 proxy *and* the ssh-tunneld process
 	 * -p port
 	 *    sets proxy_port : port for the SOCKS5 proxy
 	 * -t port
-	 *    sets tun_port : port for the csc-tunneld process
+	 *    sets tun_port : port for the ssh-tunneld process
 	 *
 	 * ssh_hostname and ssh_port are set from the remaining values of argv after option
 	 * processing has completed. These must always be present.
