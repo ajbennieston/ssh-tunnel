@@ -1,0 +1,79 @@
+==========
+ssh-tunnel
+==========
+
+Copyright (c) 2012 Andrew J. Bennieston
+https://github.com/ajbennieston/ssh-tunnel
+Released under the BSD license. Details below.
+
+"On-demand ssh tunnelling with a client-server architecture."
+
+---------
+Overview:
+---------
+ssh-tunneld is a daemon process which listens on tcp/1081 (by default)
+for connections from ssh-tunnelc (the client). When a client requests
+an SSH tunnel, the ssh-tunneld process will open an SSH connection to
+the host you configured, using the "-D" option for SOCKS5 dynamic
+forwarding. It then tells the client to go ahead and use the connection.
+
+The client is designed to be used as the "ProxyCommand" for an SSH session
+(see "man ssh_config" for details). It requests a tunnel from ssh-tunneld,
+then establishes its own connection using the netcat ("nc") program to
+connect through the newly created SOCKS5 proxy. When the SSH session ends,
+ssh-tunnelc tells the ssh-tunneld that it is done.
+
+ssh-tunneld keeps a count of the connected clients. When this count is > 0,
+the same "ssh -D" tunnel is used for all clients. If the count drops to 0,
+the tunnel is closed (SIGTERM is sent to the ssh process), and a
+subsequent client connect would result in a new tunnel being established.
+
+-------------
+Requirements:
+-------------
+ 1. public key (or other passwordless) access to the host being used as the
+    remote end of the dynamic forwarding. This can be done with passwordless
+	keys (not recommended) or keys which are available in an ssh-agent that
+	is in the environment of ssh-tunneld.
+
+ 2. netcat-openbsd (the OpenBSD version of netcat, rather than
+    netcat-traditional). This is required for the "-x" and "-X"
+	(SOCKS proxy) options to the "nc" program to work.
+
+ 3. (Dynamic) SSH forwarding enabled on the proxy host (remote host of the
+    "ssh -D" command). Note this also requires SSH Protocol version 2.
+
+------
+Usage:
+------
+TODO: Write this section.
+
+--------
+License:
+--------
+Copyright (c) 2012, Andrew J. Bennieston
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions
+are met:
+
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
