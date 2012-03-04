@@ -19,6 +19,7 @@ void sig_handler(int signum);
 void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_port,
                        char** tun_port, char** ssh_host, char** ssh_port);
 
+/* Two globals... */
 char* tunneld_host;
 char* tunneld_port;
 
@@ -98,11 +99,6 @@ int main(int argc, char** argv)
 		wait(NULL);
 	}
 	return EXIT_SUCCESS;
-}
-
-void print_usage(const char* program_name)
-{
-	fprintf(stderr, "Usage: %s host port\n", program_name);
 }
 
 int establish_connection(const char* hostname, const char* port)
@@ -218,8 +214,20 @@ void sig_handler(int signum)
 	}
 }
 
+void print_usage(const char* program_name)
+{
+	fprintf(stderr,
+			"Usage:\n %s [-h hostname] [-p port] [-t port] ssh_hostname ssh_port\n\n", program_name);
+	fprintf(stderr,
+			" -h hostname\n    SOCKS5 proxy and ssh-tunneld hostname.\n    Default: 127.0.0.1.\n\n");
+	fprintf(stderr,
+			" -p port\n    SOCKS5 proxy port.\n    Default: 1080.\n\n");
+	fprintf(stderr,
+			" -t port\n    ssh-tunneld control port.\n    Default: 1081.\n\n");
+}
+
 void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_port,
-                       char** tun_port, char** ssh_host, char** ssh_port)
+		               char** tun_port, char** ssh_host, char** ssh_port)
 {
 	/*
 	 * Usage: progname [-h hostname] [-p port] [-t port] ssh_hostname ssh_port
@@ -241,7 +249,7 @@ void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_po
 	int set_proxy_port = 0;
 	int set_tun_port = 0;
 
-	while((opt = getopt(argc, argv, "h:p:t:")) != -1)
+	while ((opt = getopt(argc, argv, "h:p:t:")) != -1)
 	{
 		switch (opt)
 		{
