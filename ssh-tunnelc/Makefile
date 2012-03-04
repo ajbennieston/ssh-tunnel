@@ -1,9 +1,9 @@
 CFLAGS=-Wall -Wextra -std=c99 -pedantic
 CC=gcc
 
-all: csc-tunnelc
+all: ssh-tunnelc
 
-csc-tunnelc: csc-tunnelc.c
+ssh-tunnelc: ssh-tunnelc.c
 
 clean:
-	rm -f csc-tunnelc
+	rm -f ssh-tunnelc
