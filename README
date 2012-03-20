@@ -6,7 +6,7 @@ Copyright (c) 2012 Andrew J. Bennieston
 https://github.com/ajbennieston/ssh-tunnel
 Released under the BSD license. Details below.
 
-"On-demand ssh tunnelling with a client-server architecture."
+"On-demand SSH tunnelling with a client-server architecture."
 
 ---------
 Overview:
@@ -84,9 +84,16 @@ Known Issues
    to the ssh process launched by ssh-tunneld. The count is probably wrong if the
    client is killed, too.
 
-3. The "tunnel control connection" (default tcp/1081) currently binds to all
-   interfaces. It would be better to bind only to the local interface, like ssh -D
-   does.
+---------
+Changelog
+---------
+
+2012-03-20 Andrew J. Bennieston
+    * Improved security of control socket by binding to localhost only
+      (by default)
+    * Provided command-line option (-r) to allow binding to * (all
+      interfaces for control socket
+    * Changed tabs to spaces in ssh-tunnelc.c and ssh-tunneld.c
 
 --------
 License:
