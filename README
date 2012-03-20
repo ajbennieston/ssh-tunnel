@@ -92,7 +92,7 @@ Changelog
     * Improved security of control socket by binding to localhost only
       (by default)
     * Provided command-line option (-r) to allow binding to * (all
-      interfaces for control socket
+      interfaces) for control socket
     * Changed tabs to spaces in ssh-tunnelc.c and ssh-tunneld.c
 
 --------
