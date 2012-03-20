@@ -32,13 +32,16 @@ FILE* logfile;
 
 pid_t start_ssh_tunnel(char* hostname, char* port, char* proxy_port);
 void stop_ssh_tunnel(pid_t process_id);
-int tunneld_main(char* ssh_hostname,char* ssh_port, char* proxy_port, char* tunneld_port);
+int tunneld_main(char* ssh_hostname, char* ssh_port,
+                 char* proxy_port, char* tunneld_port,
+                 int accept_remote);
 void write_log_connect(int num_connections);
 void write_log(const char* message);
 void print_usage(const char* program_name);
 void process_options(int argc, char** argv, int* nofork, char** log_filename,
                      char** remote_host, char** remote_port,
-					 char** proxy_port, char** tun_port);
+					 char** proxy_port, char** tun_port,
+                     int* accept_remote);
 
 void sig_handler(int signum)
 {
@@ -99,7 +102,9 @@ void stop_ssh_tunnel(pid_t process_id)
 	wait(NULL);
 }
 
-int tunneld_main(char* ssh_hostname,char* ssh_port, char* proxy_port, char* tunneld_port)
+int tunneld_main(char* ssh_hostname, char* ssh_port,
+                 char* proxy_port, char* tunneld_port,
+                 int accept_remote)
 {
 	int socket_fd, new_fd; /* listen on socket_fd, accept new connections -> new_fd */
 	struct addrinfo *result, *rp; /* Structures to hold addresses from getaddrinfo() */
@@ -115,7 +120,10 @@ int tunneld_main(char* ssh_hostname,char* ssh_port, char* proxy_port, char* tunn
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+    if (accept_remote)
+    {
+        hints.ai_flags = AI_PASSIVE;
+    }
 	hints.ai_protocol = 0;
 	hints.ai_canonname = NULL;
 	hints.ai_addr = NULL;
@@ -123,7 +131,16 @@ int tunneld_main(char* ssh_hostname,char* ssh_port, char* proxy_port, char* tunn
 	int yes = 1;
 
 	/* Use the hints to find address(es) to bind to */
-	if(getaddrinfo(NULL, tunneld_port, &hints, &result) != 0)
+    int gai_result = 0;
+    if (accept_remote)
+    {
+        gai_result = getaddrinfo(NULL, tunneld_port, &hints, &result);
+    }
+    else
+    {
+        gai_result = getaddrinfo("127.0.0.1", tunneld_port, &hints, &result);
+    }
+	if(gai_result != 0)
 	{
 		write_log("Error looking up address. Exiting.");
 		exit(EXIT_FAILURE);
@@ -260,7 +277,8 @@ int main(int argc, char** argv)
 	char* proxy_port;
 	char* log_filename;
 	int nofork;
-	process_options(argc, argv, &nofork, &log_filename, &remote_hostname, &remote_port, &proxy_port, &tunneld_port);
+    int accept_remote;
+	process_options(argc, argv, &nofork, &log_filename, &remote_hostname, &remote_port, &proxy_port, &tunneld_port, &accept_remote);
 
 	/* Become a daemon, then run tunneld_main() */
 
@@ -329,7 +347,7 @@ int main(int argc, char** argv)
 		}
 
 		/* Run tunneld_main() */
-		tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port);
+		tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port, accept_remote);
 
 	}
 	else if (process_id > 0)
@@ -349,7 +367,7 @@ int main(int argc, char** argv)
 void print_usage(const char* program_name)
 {
 	fprintf(stderr,
-			"Usage:\n %s [-d port] [-f] [-l file] [-p port] [-t port] hostname\n\n",
+			"Usage:\n %s [-d port] [-f] [-l file] [-p port] [-r] [-t port] hostname\n\n",
 			program_name);
 	fprintf(stderr,
 			" -d port\n    Local port for SSH SOCKS5 proxy.\n    Default: 1080.\n\n");
@@ -359,17 +377,20 @@ void print_usage(const char* program_name)
 			" -l file\n    Append log messages to file.\n\n");
 	fprintf(stderr, 
 		" -p port\n    Remote port for SSH connection.\n    Default: 22.\n\n");
+    fprintf(stderr,
+        " -r\n    Accept remote connections on control port.\n    Default: Accept only local connections.\n\n");
 	fprintf(stderr,
 			" -t port\n    Local port to listen on for control connections.\n    Default: 1081.\n\n");
 }
 
 void process_options(int argc, char** argv, int* nofork, char** log_filename,
                      char** remote_host, char** remote_port,
-					 char** proxy_port, char** tun_port)
+					 char** proxy_port, char** tun_port,
+                     int* accept_remote)
 {
 	/*
 	 * Usage:
-	 *   progname [-f] [-d port] [-l logfile] [-p port] [-t port] hostname
+	 *   progname [-f] [-d port] [-l logfile] [-p port] [-r] [-t port] hostname
 	 * 
 	 * Options:
 	 * -d port
@@ -381,6 +402,9 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
 	 *  Ignored if -f was given.
 	 * -p port
 	 *  Remote port for ssh -D
+     * -r
+     *  Accept remote connections on the control port
+     *  Default: Accept only local connections
 	 * -t port
 	 *  Local port to use for control connections
 	 *
@@ -397,13 +421,14 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
 	int opt;
 	
 	*nofork = 0; /* set default */
+    *accept_remote = 0; /* set default */
 	*proxy_port = NULL;
 	*log_filename = NULL;
 	*remote_port = NULL;
 	*tun_port = NULL;
 	*remote_host = NULL;
 
-	while ((opt = getopt(argc, argv, "d:fl:p:t:")) != -1)
+	while ((opt = getopt(argc, argv, "d:fl:p:rt:")) != -1)
 	{
 		switch(opt)
 		{
@@ -422,6 +447,9 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
 				if (*remote_port == NULL)
 					*remote_port = strdup(optarg);
 				break;
+            case 'r':
+                *accept_remote = 1;
+                break;
 			case 't': /* tunneld port */
 				if (*tun_port == NULL)
 					*tun_port = strdup(optarg);
