@@ -72,6 +72,22 @@ Usage:
     as normal, and ssh-tunnelc will tell ssh-tunneld to tear down the tunnel
     (unless something else is still using it).
 
+------------
+Known Issues
+------------
+
+1. When waiting for an SSH tunnel to be established, there is a fixed wait-time
+   of 20 seconds. This may be too long / not long enough. Would be better to test
+   connecting to the newly established tunnel.
+
+2. Doesn't work very well if something else (e.g. the kill command) sends signals
+   to the ssh process launched by ssh-tunneld. The count is probably wrong if the
+   client is killed, too.
+
+3. The "tunnel control connection" (default tcp/1081) currently binds to all
+   interfaces. It would be better to bind only to the local interface, like ssh -D
+   does.
+
 --------
 License:
 --------

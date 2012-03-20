@@ -248,9 +248,22 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
 
 void write_log_connect(int num_connections)
 {
-	char buffer[128];
-	snprintf(buffer, sizeof(buffer)-1, "Connections: %d", num_connections);
-	write_log(buffer);
+	/* Duplicate some of the logging code to avoid
+	 * using snprintf(), which triggers a warning
+	 * on FreeBSD 9 when compiling with
+	 * -pedantic -std=c99 -Wall -Wextra
+	 */
+	if (logfile != NULL)
+	{
+		char time_string[32];
+		time_t t = time(NULL);
+		char* str_time = ctime(&t);
+		strncpy(time_string, str_time, sizeof(time_string));
+		size_t stime = strlen(time_string);
+		time_string[stime-1] = '\0'; /* remove '\n' from time string */
+		fprintf(logfile, "[%s] Connections: %d.\n", time_string, num_connections);
+		fflush(logfile);
+	}
 }
 
 void write_log(const char* message)
