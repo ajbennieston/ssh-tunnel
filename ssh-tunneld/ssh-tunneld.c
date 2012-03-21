@@ -13,35 +13,110 @@
 #include <sys/wait.h>
 #include <netdb.h>
 
-/* I almost put the following code in:
- * 
- * FILE* logfile(FILE* init_file)
- * {
- *  static FILE* the_logfile;
- *  if (init_file)
- *  {
- *      the_logfile = init_file;
- *  }
- *  return the_logfile;
- * }
- *
- * but that's pretty ugly just to avoid a
- * single global variable... so here it is:
- */
-FILE* logfile;
+#include "logging.h"
+#include "options.h"
+#include "ssh-control.h"
 
-pid_t start_ssh_tunnel(char* hostname, char* port, char* proxy_port);
-void stop_ssh_tunnel(pid_t process_id);
 int tunneld_main(char* ssh_hostname, char* ssh_port,
                  char* proxy_port, char* tunneld_port,
                  int accept_remote);
-void write_log_connect(int num_connections);
-void write_log(const char* message);
-void print_usage(const char* program_name);
-void process_options(int argc, char** argv, int* nofork, char** log_filename,
-                     char** remote_host, char** remote_port,
-                     char** proxy_port, char** tun_port,
-                     int* accept_remote);
+
+void sig_handler(int signum);
+
+int main(int argc, char** argv)
+{
+    char* remote_hostname;
+    char* remote_port;
+    char* tunneld_port;
+    char* proxy_port;
+    char* log_filename;
+    int nofork;
+    int accept_remote;
+    process_options(argc, argv, &nofork, &log_filename, &remote_hostname, &remote_port, &proxy_port, &tunneld_port, &accept_remote);
+
+    /* Become a daemon, then run tunneld_main() */
+
+    /* 1. Fork */
+    pid_t process_id = 0;
+    if (! nofork)
+        process_id = fork();
+    if(process_id == 0)
+    {
+        /* in child process */
+        umask(0); /* set umask to something sensible */
+
+        /* open a logfile */
+        if (nofork)
+        {
+            logfile = stderr;
+        }
+        else if (log_filename != NULL)
+        {
+            logfile = fopen(log_filename, "a");
+            if (logfile == NULL)
+            {
+                perror("fopen");
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            // No log file
+            logfile = NULL;
+        }
+
+        /* become session leader */
+        if (! nofork)
+        {
+            pid_t session_id = setsid();
+            if (session_id < 0)
+            {
+                write_log("Could not create session. Exiting.");
+                exit(EXIT_FAILURE);
+            }
+        }   
+
+        /* change the working directory */
+        if(chdir("/") < 0)
+        {
+            write_log("Could not change directory to /. Exiting.");
+            exit(EXIT_FAILURE);
+        }
+
+        /* Close standard file descriptors */
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        if (! nofork)
+            close(STDERR_FILENO);
+
+        /* Set up signal handler */
+        struct sigaction sa;
+        memset(&sa, 0, sizeof(struct sigaction));
+        sa.sa_handler = sig_handler;
+        sigaddset(&(sa.sa_mask), SIGTERM);
+        if (sigaction(SIGTERM, &sa, NULL) != 0)
+        {
+            write_log("Could not set signal handler for SIGTERM. Exiting.");
+            exit(EXIT_FAILURE);
+        }
+
+        /* Run tunneld_main() */
+        tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port, accept_remote);
+
+    }
+    else if (process_id > 0)
+    {
+        /* in parent process; exit */
+        _exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        /* something went wrong */
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    return 0;
+}
 
 void sig_handler(int signum)
 {
@@ -54,52 +129,6 @@ void sig_handler(int signum)
         default:
             break;
     }
-}
-
-pid_t start_ssh_tunnel(char* hostname, char* port, char* proxy_port)
-{
-    write_log("Starting ssh process.");
-    char* argv[] = {
-        "ssh",
-        "-T",
-        "-n",
-        "-N",
-        "-D",
-        proxy_port,
-        "-p",
-        port,
-        hostname,
-        NULL
-    };
-    
-    int process_id = fork();
-    if (process_id < 0)
-    {
-        write_log("Error while trying to fork ssh process. Exiting.");
-        exit(EXIT_FAILURE);
-    }
-    if (process_id == 0)
-    {
-        /* In child process, execute ssh */
-        if(execvp("ssh", argv) == -1)
-        {
-            write_log("Error while trying to exec ssh process. Exiting.");
-            exit(EXIT_FAILURE);
-        }
-    }
-    /* Only get here if we're in the parent process */
-    return process_id;
-}
-
-void stop_ssh_tunnel(pid_t process_id)
-{
-    write_log("Stopping ssh process.");
-    if(kill(process_id, SIGTERM) != 0)
-    {
-        perror("kill");
-        exit(EXIT_FAILURE);
-    }
-    wait(NULL);
 }
 
 int tunneld_main(char* ssh_hostname, char* ssh_port,
@@ -244,258 +273,5 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
     }
 
     return 0;
-}
-
-void write_log_connect(int num_connections)
-{
-    /* Duplicate some of the logging code to avoid
-     * using snprintf(), which triggers a warning
-     * on FreeBSD 9 when compiling with
-     * -pedantic -std=c99 -Wall -Wextra
-     */
-    if (logfile != NULL)
-    {
-        char time_string[32];
-        time_t t = time(NULL);
-        char* str_time = ctime(&t);
-        strncpy(time_string, str_time, sizeof(time_string));
-        size_t stime = strlen(time_string);
-        time_string[stime-1] = '\0'; /* remove '\n' from time string */
-        fprintf(logfile, "[%s] Connections: %d.\n", time_string, num_connections);
-        fflush(logfile);
-    }
-}
-
-void write_log(const char* message)
-{
-    /* write a log message that is prefixed with the current date & time */
-    if (logfile != NULL)
-    {
-        char time_string[32];
-        time_t t = time(NULL);
-        char* str_time = ctime(&t); /* obtain time as string */
-        strncpy(time_string, str_time, sizeof(time_string));
-        size_t stime = strlen(time_string);
-        time_string[stime-1] = '\0'; /* remove '\n' from time string */
-        fprintf(logfile, "[%s] %s\n", time_string, message);
-        fflush(logfile);
-    }
-}
-
-int main(int argc, char** argv)
-{
-    char* remote_hostname;
-    char* remote_port;
-    char* tunneld_port;
-    char* proxy_port;
-    char* log_filename;
-    int nofork;
-    int accept_remote;
-    process_options(argc, argv, &nofork, &log_filename, &remote_hostname, &remote_port, &proxy_port, &tunneld_port, &accept_remote);
-
-    /* Become a daemon, then run tunneld_main() */
-
-    /* 1. Fork */
-    pid_t process_id = 0;
-    if (! nofork)
-        process_id = fork();
-    if(process_id == 0)
-    {
-        /* in child process */
-        umask(0); /* set umask to something sensible */
-
-        /* open a logfile */
-        if (nofork)
-        {
-            logfile = stderr;
-        }
-        else if (log_filename != NULL)
-        {
-            logfile = fopen(log_filename, "a");
-            if (logfile == NULL)
-            {
-                perror("fopen");
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            // No log file
-            logfile = NULL;
-        }
-
-        /* become session leader */
-        if (! nofork)
-        {
-            pid_t session_id = setsid();
-            if (session_id < 0)
-            {
-                write_log("Could not create session. Exiting.");
-                exit(EXIT_FAILURE);
-            }
-        }   
-
-        /* change the working directory */
-        if(chdir("/") < 0)
-        {
-            write_log("Could not change directory to /. Exiting.");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Close standard file descriptors */
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        if (! nofork)
-            close(STDERR_FILENO);
-
-        /* Set up signal handler */
-        struct sigaction sa;
-        memset(&sa, 0, sizeof(struct sigaction));
-        sa.sa_handler = sig_handler;
-        sigaddset(&(sa.sa_mask), SIGTERM);
-        if (sigaction(SIGTERM, &sa, NULL) != 0)
-        {
-            write_log("Could not set signal handler for SIGTERM. Exiting.");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Run tunneld_main() */
-        tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port, accept_remote);
-
-    }
-    else if (process_id > 0)
-    {
-        /* in parent process; exit */
-        _exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        /* something went wrong */
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    return 0;
-}
-
-void print_usage(const char* program_name)
-{
-    fprintf(stderr,
-            "Usage:\n %s [-d port] [-f] [-l file] [-p port] [-r] [-t port] hostname\n\n",
-            program_name);
-    fprintf(stderr,
-            " -d port\n    Local port for SSH SOCKS5 proxy.\n    Default: 1080.\n\n");
-    fprintf(stderr,
-            " -f\n    Don't fork. Remain attached to terminal and log to stderr.\n\n");
-    fprintf(stderr,
-            " -l file\n    Append log messages to file.\n\n");
-    fprintf(stderr, 
-        " -p port\n    Remote port for SSH connection.\n    Default: 22.\n\n");
-    fprintf(stderr,
-        " -r\n    Accept remote connections on control port.\n    Default: Accept only local connections.\n\n");
-    fprintf(stderr,
-            " -t port\n    Local port to listen on for control connections.\n    Default: 1081.\n\n");
-}
-
-void process_options(int argc, char** argv, int* nofork, char** log_filename,
-                     char** remote_host, char** remote_port,
-                     char** proxy_port, char** tun_port,
-                     int* accept_remote)
-{
-    /*
-     * Usage:
-     *   progname [-f] [-d port] [-l logfile] [-p port] [-r] [-t port] hostname
-     * 
-     * Options:
-     * -d port
-     *  Local port to use for SOCKS5 proxy (ssh -D port)
-     * -f
-     *  Don't fork; stays attached to terminal and logs to stderr
-     * -l logfile
-     *  Append log messages to the filename specified.
-     *  Ignored if -f was given.
-     * -p port
-     *  Remote port for ssh -D
-     * -r
-     *  Accept remote connections on the control port
-     *  Default: Accept only local connections
-     * -t port
-     *  Local port to use for control connections
-     *
-     * hostname must be specified. Default options as follows:
-     *  proxy port : 1080
-     *  logfile : none
-     *  tunneld port : 1081
-     *  remote port : 22
-     *
-     * The default behaviour is to fork and detach from the
-     * controlling terminal. Only the first occurrence of an
-     * option argument will be used.
-     */
-    int opt;
-    
-    *nofork = 0; /* set default */
-    *accept_remote = 0; /* set default */
-    *proxy_port = NULL;
-    *log_filename = NULL;
-    *remote_port = NULL;
-    *tun_port = NULL;
-    *remote_host = NULL;
-
-    while ((opt = getopt(argc, argv, "d:fl:p:rt:")) != -1)
-    {
-        switch(opt)
-        {
-            case 'd': /* local proxy port */
-                if (*proxy_port == NULL)
-                    *proxy_port = strdup(optarg);
-                break;
-            case 'f': /* nofork */
-                *nofork = 1;
-                break;
-            case 'l': /* log filename */
-                if (*log_filename == NULL)
-                    *log_filename = strdup(optarg);
-                break;
-            case 'p': /* remote port */
-                if (*remote_port == NULL)
-                    *remote_port = strdup(optarg);
-                break;
-            case 'r':
-                *accept_remote = 1;
-                break;
-            case 't': /* tunneld port */
-                if (*tun_port == NULL)
-                    *tun_port = strdup(optarg);
-                break;
-            default:
-                print_usage(argv[0]);
-                exit(EXIT_FAILURE);
-        }
-    }
-
-    if (optind + 1 > argc)
-    {
-        print_usage(argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    *remote_host = strdup(argv[optind]);
-
-    /* Set default values */
-    if (*proxy_port == NULL)
-    {
-        char* default_proxy_port = "1080";
-        *proxy_port = strdup(default_proxy_port);
-    }
-    if (*remote_port == NULL)
-    {
-        char* default_remote_port = "22";
-        *remote_port = strdup(default_remote_port);
-    }
-    if (*tun_port == NULL)
-    {
-        char* default_tun_port = "1081";
-        *tun_port = strdup(default_tun_port);
-    }
 }
 
