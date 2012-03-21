@@ -88,6 +88,12 @@ Known Issues
 Changelog
 ---------
 
+2012-03-21 Andrew J. Bennieston
+    * Split ssh-tunnelc.c across multiple files to improve ease of
+      navigation
+    * Modified ssh-tunnelc/Makefile to build any .c files in that
+      directory then link them together into the ssh-tunnelc binary
+
 2012-03-20 Andrew J. Bennieston
     * Improved security of control socket by binding to localhost only
       (by default)
