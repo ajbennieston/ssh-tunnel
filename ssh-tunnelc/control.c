@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 500
 #include "control.h"
 
 #include <stdio.h>
