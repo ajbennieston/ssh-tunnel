@@ -22,6 +22,8 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
 
 void sig_handler(int signum);
 
+int test_connection(char* proxy_port);
+
 int main(int argc, char** argv)
 {
     char* remote_hostname;
@@ -241,10 +243,12 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
             {
                 /* no tunnel exists; start it */
                 ssh_tunnel_process = start_ssh_tunnel(ssh_hostname, ssh_port, proxy_port);
-                sleep(20); /* give ssh time to establish a connection */
-                /* a better approach might be to try connecting to proxy_port,
-                 * sleep for a bit if it doesn't work, then retry.
+                /* Sleep for 1 second then test
+                 * connection; repeat until success
                  */
+                do {
+                    sleep(1);
+                } while ( test_connection(proxy_port) );
             }
             n_connected += 1;
             write_log_connect(n_connected);
@@ -274,3 +278,56 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
     return 0;
 }
 
+int test_connection(char* proxy_port)
+{
+    const char* hostname = "127.0.0.1";
+
+    struct addrinfo hints;
+    struct addrinfo *result, *rp;
+    int socket_fd;
+    int gai_return_value;
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;
+
+    if ((gai_return_value = getaddrinfo(hostname, proxy_port, &hints, &result)) != 0)
+    {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_return_value));
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * Try each address returned by getaddrinfo
+     * in turn
+     */
+    for(rp = result; rp != NULL; rp = rp->ai_next)
+    {
+        socket_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (socket_fd == -1)
+            continue;
+
+        if (connect(socket_fd, rp->ai_addr, rp->ai_addrlen) != -1)
+            break; /* Successfully connected */
+
+        close(socket_fd);
+    }
+
+    freeaddrinfo(result); /* no longer need the address structures */
+
+    if (rp == NULL)
+    {
+        /* no attempt to connect succeeded */
+        /* return 1 */
+        return 1;
+    }
+    else
+    {
+        /* We successfully connected */
+        /* Disconnect and return 0 */
+        close(socket_fd);
+        return 0;
+    }
+}
