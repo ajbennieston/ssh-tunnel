@@ -310,24 +310,17 @@ int test_connection(char* proxy_port)
             continue;
 
         if (connect(socket_fd, rp->ai_addr, rp->ai_addrlen) != -1)
-            break; /* Successfully connected */
+        {
+            /* Successfully connected */
+            freeaddrinfo(result);
+            close(socket_fd);
+            return 0;
+        }
 
         close(socket_fd);
     }
 
+    /* If we got here, we didn't manage to connect successfully */
     freeaddrinfo(result); /* no longer need the address structures */
-
-    if (rp == NULL)
-    {
-        /* no attempt to connect succeeded */
-        /* return 1 */
-        return 1;
-    }
-    else
-    {
-        /* We successfully connected */
-        /* Disconnect and return 0 */
-        close(socket_fd);
-        return 0;
-    }
+    return 1;
 }

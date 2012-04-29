@@ -76,11 +76,7 @@ Usage:
 Known Issues
 ------------
 
-1. When waiting for an SSH tunnel to be established, there is a fixed wait-time
-   of 20 seconds. This may be too long / not long enough. Would be better to test
-   connecting to the newly established tunnel.
-
-2. Doesn't work very well if something else (e.g. the kill command) sends signals
+1. Doesn't work very well if something else (e.g. the kill command) sends signals
    to the ssh process launched by ssh-tunneld. The count is probably wrong if the
    client is killed, too.
 
