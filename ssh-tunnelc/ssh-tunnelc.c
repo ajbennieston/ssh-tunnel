@@ -42,11 +42,6 @@ int main(int argc, char** argv)
     strncpy(proxy_host_port+phost_len+1, proxy_port, pport_len);
     proxy_host_port[phost_len+pport_len+1] = '\0';
 
-    /* Send a message to ssh-tunneld telling it we
-     * want to open an ssh connection through the tunnel
-     */
-    connection_start();
-
     /* Register a signal handler */
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
@@ -54,20 +49,44 @@ int main(int argc, char** argv)
     sigaddset(&(sa.sa_mask), SIGTERM);
     sigaddset(&(sa.sa_mask), SIGCHLD);
     sigaddset(&(sa.sa_mask), SIGHUP);
+    sigaddset(&(sa.sa_mask), SIGINT);
     sa.sa_flags = SA_NOCLDSTOP;
-    if(sigaction(SIGCHLD, &sa, NULL) != 0)
+    if (sigaction(SIGCHLD, &sa, NULL) != 0)
     {
         perror("sigaction");
     }
-    if(sigaction(SIGTERM, &sa, NULL) != 0)
+    if (sigaction(SIGTERM, &sa, NULL) != 0)
     {
         perror("sigaction");
     }
-    if(sigaction(SIGHUP, &sa, NULL) != 0)
+    if (sigaction(SIGHUP, &sa, NULL) != 0)
     {
         perror("sigaction");
     }
-    
+    if (sigaction(SIGINT, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+
+    /* Send a message to ssh-tunneld telling it we
+     * want to open an ssh connection through the tunnel
+     * While we do this, block SIGINT and SIGTERM so
+     * the tunneld has a chance of keeping track of state.
+     */
+    sigset_t sigmask;
+    if ((sigemptyset(&sigmask) == -1)
+            || (sigaddset(&sigmask, SIGTERM) == -1)
+            || (sigaddset(&sigmask, SIGINT) == -1)
+            || sigprocmask(SIG_BLOCK, &sigmask, NULL))
+    {
+        perror("Failed to block SIGINT and SIGTERM");
+    }
+    connection_start();
+    if (sigprocmask(SIG_UNBLOCK, &sigmask, NULL) == -1)
+    {
+        perror("Failed to unblock SIGINT and SIGTERM");
+    }
+
     /* fork and execute:
      * nc -X 5 -x proxyhost:proxyport host port
      */
@@ -105,6 +124,7 @@ void sig_handler(int signum)
     {
         case SIGCHLD:
         case SIGTERM:
+        case SIGINT:
         case SIGHUP:
             connection_stop();
             exit(EXIT_SUCCESS);
