@@ -47,7 +47,7 @@ Requirements:
 Usage:
 ------
  1. Type 'make' to build the client (ssh-tunnelc) and server (ssh-tunneld) in
-    their respective directories.
+    their respective directories. This works with either BSD Make or GNU Make.
  
  2. Copy the binaries ssh-tunnelc/ssh-tunnelc and ssh-tunneld/ssh-tunneld to
     somewhere in your $PATH.
