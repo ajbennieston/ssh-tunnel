@@ -84,25 +84,25 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
         {
             case 'd': /* local proxy port */
                 if (*proxy_port == NULL)
-                    *proxy_port = strdup(optarg);
+                    *proxy_port = optarg;
                 break;
             case 'f': /* nofork */
                 *nofork = 1;
                 break;
             case 'l': /* log filename */
                 if (*log_filename == NULL)
-                    *log_filename = strdup(optarg);
+                    *log_filename = optarg;
                 break;
             case 'p': /* remote port */
                 if (*remote_port == NULL)
-                    *remote_port = strdup(optarg);
+                    *remote_port = optarg;
                 break;
             case 'r':
                 *accept_remote = 1;
                 break;
             case 't': /* tunneld port */
                 if (*tun_port == NULL)
-                    *tun_port = strdup(optarg);
+                    *tun_port = optarg;
                 break;
             default:
                 print_usage(argv[0]);
@@ -116,7 +116,7 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
         exit(EXIT_FAILURE);
     }
 
-    *remote_host = strdup(argv[optind]);
+    *remote_host = argv[optind];
 
     /* Set default values */
     if (*proxy_port == NULL)

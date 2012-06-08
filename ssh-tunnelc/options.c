@@ -56,21 +56,21 @@ void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_po
                 /* Set proxy host */
                 if (! set_proxy_host)
                 {
-                    *proxy_host = strdup(optarg);
+                    *proxy_host = optarg;
                     set_proxy_host = 1;
                 }
                 break;
             case 'p':
                 if (! set_proxy_port)
                 {
-                    *proxy_port = strdup(optarg);
+                    *proxy_port = optarg;
                     set_proxy_port = 1;
                 }
                 break;
             case 't':
                 if (! set_tun_port)
                 {
-                    *tun_port = strdup(optarg);
+                    *tun_port = optarg;
                     set_tun_port = 1;
                 }
                 break;
@@ -87,8 +87,8 @@ void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_po
         exit(EXIT_FAILURE);
     }
     /* The remaining options should now be the ssh host and port */
-    *ssh_host = strdup(argv[optind]);
-    *ssh_port = strdup(argv[optind+1]);
+    *ssh_host = argv[optind];
+    *ssh_port = argv[optind+1];
 
     /* And set default values if we didn't receive them from the options */
     if (! set_proxy_host)
