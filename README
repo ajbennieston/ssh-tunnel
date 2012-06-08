@@ -76,9 +76,10 @@ Usage:
 Known Issues
 ------------
 
-1. Doesn't work very well if something else (e.g. the kill command) sends signals
-   to the ssh process launched by ssh-tunneld. The count is probably wrong if the
-   client is killed, too.
+1. Active connection count is incorrect if the client terminates due to 
+   receiving SIGKILL. There isn't a lot that can be done about this...
+   One option might be some kind of keep-alive approach, but I have no
+   plans to implement this any time soon.
 
 ---------
 Changelog
