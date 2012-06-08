@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 pid_t start_ssh_tunnel(char* hostname, char* port, char* proxy_port)
 {
