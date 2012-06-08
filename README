@@ -90,6 +90,8 @@ Changelog
     * Added BSD-style Makefiles to support BSD Make as well as GNU Make
     * Added comments to top of every header / source file to identify
       it as part of ssh-tunnel
+    * Reduced the number of times strdup() is used when processing
+      command-line options
 
 2012-03-21 Andrew J. Bennieston
     * Split ssh-tunnelc.c across multiple files to improve ease of
