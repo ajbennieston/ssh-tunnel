@@ -1,3 +1,9 @@
+/*
+ * This file is part of ssh-tunnel.
+ * See the LICENSE file in the top-level directory
+ * of the source distribution for further details.
+ */
+
 #define _XOPEN_SOURCE 500
 
 #include "logging.h"

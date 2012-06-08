@@ -85,8 +85,11 @@ Changelog
 ---------
 
 2012-06-08 Andrew J. Bennieston
+    * Updated to compile without warnings on Mac OS X Lion using either
+      clang or llvm-gcc
     * Added BSD-style Makefiles to support BSD Make as well as GNU Make
-    * Updated to compile without warnings on Mac OS X Lion
+    * Added comments to top of every header / source file to identify
+      it as part of ssh-tunnel
 
 2012-03-21 Andrew J. Bennieston
     * Split ssh-tunnelc.c across multiple files to improve ease of

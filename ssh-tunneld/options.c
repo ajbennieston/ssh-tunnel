@@ -1,3 +1,9 @@
+/*
+ * This file is part of ssh-tunnel.
+ * See the LICENSE file in the top-level directory
+ * of the source distribution for further details.
+ */
+
 #define _XOPEN_SOURCE 500
 #define _POSIX_C_SOURCE 200112L
 
