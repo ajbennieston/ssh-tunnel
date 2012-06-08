@@ -1,0 +1,12 @@
+PROG=	ssh-tunneld
+
+SRCS=	logging.c \
+		options.c \
+		ssh-control.c \
+		ssh-tunneld.c
+
+CFLAGS+=	-Wall -Wextra -std=c99 -pedantic
+
+MAN=
+
+.include <bsd.prog.mk>
