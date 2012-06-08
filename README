@@ -84,6 +84,9 @@ Known Issues
 Changelog
 ---------
 
+2012-06-09 Andrew J. Bennieston
+    * Improved handling of client quit due to SIGTERM or SIGINT
+
 2012-06-08 Andrew J. Bennieston
     * Updated to compile without warnings on Mac OS X Lion using either
       clang or llvm-gcc
