@@ -84,6 +84,11 @@ Known Issues
 Changelog
 ---------
 
+2012-06-10 Andrew J. Bennieston
+    * Better initialisation of variables in ssh-tunneld.c
+    * Rearranged logic on if() .. elseif() .. else when
+      forking child process
+
 2012-06-09 Andrew J. Bennieston
     * Improved handling of client quit due to SIGTERM or SIGINT
 
