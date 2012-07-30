@@ -1,3 +1,9 @@
+/*
+ * This file is part of ssh-tunnel.
+ * See the LICENSE file in the top-level directory
+ * of the source distribution for further details.
+ */
+
 #define _XOPEN_SOURCE 500
 
 #include <stdio.h>
@@ -26,13 +32,13 @@ int test_connection(char* proxy_port);
 
 int main(int argc, char** argv)
 {
-    char* remote_hostname;
-    char* remote_port;
-    char* tunneld_port;
-    char* proxy_port;
-    char* log_filename;
-    int nofork;
-    int accept_remote;
+    char* remote_hostname = 0;
+    char* remote_port = 0;
+    char* tunneld_port = 0;
+    char* proxy_port = 0;
+    char* log_filename = 0;
+    int nofork = 0;
+    int accept_remote = 0;
     process_options(argc, argv, &nofork, &log_filename, &remote_hostname, &remote_port, &proxy_port, &tunneld_port, &accept_remote);
 
     /* Become a daemon, then run tunneld_main() */
@@ -41,81 +47,80 @@ int main(int argc, char** argv)
     pid_t process_id = 0;
     if (! nofork)
         process_id = fork();
-    if(process_id == 0)
-    {
-        /* in child process */
-        umask(0); /* set umask to something sensible */
 
-        /* open a logfile */
-        if (nofork)
-        {
-            logfile = stderr;
-        }
-        else if (log_filename != NULL)
-        {
-            logfile = fopen(log_filename, "a");
-            if (logfile == NULL)
-            {
-                perror("fopen");
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            // No log file
-            logfile = NULL;
-        }
-
-        /* become session leader */
-        if (! nofork)
-        {
-            pid_t session_id = setsid();
-            if (session_id < 0)
-            {
-                write_log("Could not create session. Exiting.");
-                exit(EXIT_FAILURE);
-            }
-        }   
-
-        /* change the working directory */
-        if(chdir("/") < 0)
-        {
-            write_log("Could not change directory to /. Exiting.");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Close standard file descriptors */
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        if (! nofork)
-            close(STDERR_FILENO);
-
-        /* Set up signal handler */
-        struct sigaction sa;
-        memset(&sa, 0, sizeof(struct sigaction));
-        sa.sa_handler = sig_handler;
-        sigaddset(&(sa.sa_mask), SIGTERM);
-        if (sigaction(SIGTERM, &sa, NULL) != 0)
-        {
-            write_log("Could not set signal handler for SIGTERM. Exiting.");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Run tunneld_main() */
-        tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port, accept_remote);
-
-    }
-    else if (process_id > 0)
+    if (process_id > 0)
     {
         /* in parent process; exit */
         _exit(EXIT_SUCCESS);
     }
-    else
+    else if (process_id < 0)
     {
-        /* something went wrong */
+        /* Something went wrong */
         perror("fork");
         exit(EXIT_FAILURE);
     }
+
+    /* If we get here, we're in the child process */
+    umask(0); /* set umask to something sensible */
+
+    /* open a logfile */
+    if (nofork)
+    {
+        logfile = stderr;
+    }
+    else if (log_filename != NULL)
+    {
+        logfile = fopen(log_filename, "a");
+        if (logfile == NULL)
+        {
+            perror("fopen");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        // No log file
+        logfile = NULL;
+    }
+
+    /* become session leader */
+    if (! nofork)
+    {
+        pid_t session_id = setsid();
+        if (session_id < 0)
+        {
+            write_log("Could not create session. Exiting.");
+            exit(EXIT_FAILURE);
+        }
+    }   
+
+    /* change the working directory */
+    if(chdir("/") < 0)
+    {
+        write_log("Could not change directory to /. Exiting.");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Close standard file descriptors */
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    if (! nofork)
+        close(STDERR_FILENO);
+
+    /* Set up signal handler */
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = sig_handler;
+    sigaddset(&(sa.sa_mask), SIGTERM);
+    if (sigaction(SIGTERM, &sa, NULL) != 0)
+    {
+        write_log("Could not set signal handler for SIGTERM. Exiting.");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Run tunneld_main() */
+    tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port, accept_remote);
+
     return 0;
 }
 
@@ -136,8 +141,10 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
                  char* proxy_port, char* tunneld_port,
                  int accept_remote)
 {
-    int socket_fd, new_fd; /* listen on socket_fd, accept new connections -> new_fd */
-    struct addrinfo *result, *rp; /* Structures to hold addresses from getaddrinfo() */
+    int socket_fd = 0; /* listen on socket_fd... */
+    int new_fd = 0; /*  ... accept new connections -> new_fd */
+    struct addrinfo *result = 0; /* Structure to hold addresses from getaddrinfo() */
+    struct addrinfo *rp = 0; /* Pointer for our convenience */
     struct addrinfo hints; /* hints to getaddrinfo() */
     
     char buf[1]; /* future-proof; if we have bigger messages we can expand this here */
@@ -283,9 +290,10 @@ int test_connection(char* proxy_port)
     const char* hostname = "127.0.0.1";
 
     struct addrinfo hints;
-    struct addrinfo *result, *rp;
-    int socket_fd;
-    int gai_return_value;
+    struct addrinfo *result = 0;
+    struct addrinfo *rp = 0;
+    int socket_fd = 0;
+    int gai_return_value = 0;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;

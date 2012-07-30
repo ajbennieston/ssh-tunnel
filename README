@@ -76,17 +76,31 @@ Usage:
 Known Issues
 ------------
 
-1. Doesn't work very well if something else (e.g. the kill command) sends signals
-   to the ssh process launched by ssh-tunneld. The count is probably wrong if the
-   client is killed, too.
+1. Active connection count is incorrect if the client terminates due to 
+   receiving SIGKILL. There isn't a lot that can be done about this...
+   One option might be some kind of keep-alive approach, but I have no
+   plans to implement this any time soon.
 
 ---------
 Changelog
 ---------
 
+2012-06-10 Andrew J. Bennieston
+    * Better initialisation of variables in ssh-tunneld.c
+    * Rearranged logic on if() .. elseif() .. else when
+      forking child process
+
+2012-06-09 Andrew J. Bennieston
+    * Improved handling of client quit due to SIGTERM or SIGINT
+
 2012-06-08 Andrew J. Bennieston
+    * Updated to compile without warnings on Mac OS X Lion using either
+      clang or llvm-gcc
     * Added BSD-style Makefiles to support BSD Make as well as GNU Make
-    * Updated to compile without warnings on Mac OS X Lion
+    * Added comments to top of every header / source file to identify
+      it as part of ssh-tunnel
+    * Reduced the number of times strdup() is used when processing
+      command-line options
 
 2012-03-21 Andrew J. Bennieston
     * Split ssh-tunnelc.c across multiple files to improve ease of
