@@ -75,7 +75,7 @@ int main(int argc, char** argv)
     else if (id == 0)
     {
         /* in child process */
-        int status = execlp("nc", "nc", "-X", "5", "-x", proxy_host_port, argv[1], argv[2], NULL);
+        int status = execlp("nc", "nc", "-X", "5", "-x", proxy_host_port, argv[1], argv[2], (char *) NULL);
         /* if the exec succeeded, we should never get here */
         if (status == -1)
         {
