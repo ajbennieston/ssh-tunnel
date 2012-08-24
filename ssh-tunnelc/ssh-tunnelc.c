@@ -42,7 +42,8 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    /* build string "proxyhost:proxyport" */
+    /* Build string "proxyhost:proxyport" and ensure that the
+     * resulting string is null-terminated. */
     strncpy(proxy_host_port, proxy_host, phost_len);
     proxy_host_port[phost_len] = ':';
     strncpy(proxy_host_port+phost_len+1, proxy_port, pport_len);
