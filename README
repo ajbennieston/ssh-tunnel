@@ -90,6 +90,7 @@ Changelog
       against NULL
     * Ensure that any strncpy() call results in a correctly null-terminated
       string
+    * Change umask of child process to 077 in ssh-tunneld
 
 2012-07-30 Andrew J. Bennieston
     * Use (char *) NULL instead of plain NULL to terminate execlp(...);
