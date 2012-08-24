@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     }
 
     /* If we get here, we're in the child process */
-    umask(0); /* set umask to something sensible */
+    umask(077); /* set umask to something sensible */
 
     /* open a logfile */
     if (nofork)
