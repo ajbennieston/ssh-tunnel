@@ -35,6 +35,12 @@ int main(int argc, char** argv)
     size_t pport_len = strlen(proxy_port);
     size_t phost_port_len = phost_len + pport_len + 2;
     char* proxy_host_port = malloc(phost_port_len*sizeof(char));
+    if (proxy_host_port == NULL)
+    {
+        /* malloc() failed */
+        fprintf(stderr, "Unable to allocate memory. Exiting.\n");
+        return EXIT_FAILURE;
+    }
 
     /* build string "proxyhost:proxyport" */
     strncpy(proxy_host_port, proxy_host, phost_len);

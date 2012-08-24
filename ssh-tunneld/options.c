@@ -14,6 +14,19 @@
 #include <string.h>
 #include <unistd.h>
 
+char *checked_strdup(const char *s)
+{
+    /* Wrap strdup() and check for NULL return value,
+     * indicating that memory allocation failed. */
+    char *duplicate = strdup(s); /* NULL check follows */
+    if (duplicate == NULL)
+    {
+        fprintf(stderr, "Unable to allocate memory. Exiting.\n");
+        exit(EXIT_FAILURE);
+    }
+    return duplicate;
+}
+
 void print_usage(const char* program_name)
 {
     fprintf(stderr,
@@ -122,17 +135,17 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
     if (*proxy_port == NULL)
     {
         char* default_proxy_port = "1080";
-        *proxy_port = strdup(default_proxy_port);
+        *proxy_port = checked_strdup(default_proxy_port);
     }
     if (*remote_port == NULL)
     {
         char* default_remote_port = "22";
-        *remote_port = strdup(default_remote_port);
+        *remote_port = checked_strdup(default_remote_port);
     }
     if (*tun_port == NULL)
     {
         char* default_tun_port = "1081";
-        *tun_port = strdup(default_tun_port);
+        *tun_port = checked_strdup(default_tun_port);
     }
 }
 
