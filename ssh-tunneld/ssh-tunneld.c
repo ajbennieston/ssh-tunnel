@@ -165,7 +165,7 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
     hints.ai_canonname = NULL;
     hints.ai_addr = NULL;
     hints.ai_next = NULL;
-    int yes = 1;
+    const int yes = 1;
 
     /* Use the hints to find address(es) to bind to */
     int gai_result = 0;
