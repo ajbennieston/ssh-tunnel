@@ -30,14 +30,6 @@ int test_connection(char* proxy_port);
 
 int main(int argc, char** argv)
 {
-    /*char* remote_hostname = 0;
-    char* remote_port = 0;
-    char* tunneld_port = 0;
-    char* proxy_port = 0;
-    char* log_filename = 0;
-    int nofork = 0;
-    int accept_remote = 0;
-    */
     /* Keep the program options together */
     struct program_options options;
     memset(&options, sizeof(struct program_options), 0);
