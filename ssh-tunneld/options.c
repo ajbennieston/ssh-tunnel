@@ -46,10 +46,7 @@ void print_usage(const char* program_name)
             " -t port\n    Local port to listen on for control connections.\n    Default: 1081.\n\n");
 }
 
-void process_options(int argc, char** argv, int* nofork, char** log_filename,
-                     char** remote_host, char** remote_port,
-                     char** proxy_port, char** tun_port,
-                     int* accept_remote)
+void process_options(int argc, char** argv, struct program_options* options)
 {
     /*
      * Usage:
@@ -83,39 +80,40 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
      */
     int opt;
     
-    *nofork = 0; /* set default */
-    *accept_remote = 0; /* set default */
-    *proxy_port = NULL;
-    *log_filename = NULL;
-    *remote_port = NULL;
-    *tun_port = NULL;
-    *remote_host = NULL;
+    /* Set defaults */
+    options->nofork = 0; 
+    options->accept_remote = 0; 
+    options->proxy_port = NULL;
+    options->log_filename = NULL;
+    options->remote_port = NULL;
+    options->tunnel_port = NULL;
+    options->remote_host = NULL;
 
     while ((opt = getopt(argc, argv, "d:fl:p:rt:")) != -1)
     {
         switch(opt)
         {
             case 'd': /* local proxy port */
-                if (*proxy_port == NULL)
-                    *proxy_port = optarg;
+                if (options->proxy_port == NULL)
+                    options->proxy_port = optarg;
                 break;
             case 'f': /* nofork */
-                *nofork = 1;
+                options->nofork = 1;
                 break;
             case 'l': /* log filename */
-                if (*log_filename == NULL)
-                    *log_filename = optarg;
+                if (options->log_filename == NULL)
+                    options->log_filename = optarg;
                 break;
             case 'p': /* remote port */
-                if (*remote_port == NULL)
-                    *remote_port = optarg;
+                if (options->remote_port == NULL)
+                    options->remote_port = optarg;
                 break;
             case 'r':
-                *accept_remote = 1;
+                options->accept_remote = 1;
                 break;
             case 't': /* tunneld port */
-                if (*tun_port == NULL)
-                    *tun_port = optarg;
+                if (options->tunnel_port == NULL)
+                    options->tunnel_port = optarg;
                 break;
             default:
                 print_usage(argv[0]);
@@ -129,23 +127,23 @@ void process_options(int argc, char** argv, int* nofork, char** log_filename,
         exit(EXIT_FAILURE);
     }
 
-    *remote_host = argv[optind];
+    options->remote_host = argv[optind];
 
     /* Set default values */
-    if (*proxy_port == NULL)
+    if (options->proxy_port == NULL)
     {
         char* default_proxy_port = "1080";
-        *proxy_port = checked_strdup(default_proxy_port);
+        options->proxy_port = checked_strdup(default_proxy_port);
     }
-    if (*remote_port == NULL)
+    if (options->remote_port == NULL)
     {
         char* default_remote_port = "22";
-        *remote_port = checked_strdup(default_remote_port);
+        options->remote_port = checked_strdup(default_remote_port);
     }
-    if (*tun_port == NULL)
+    if (options->tunnel_port == NULL)
     {
         char* default_tun_port = "1081";
-        *tun_port = checked_strdup(default_tun_port);
+        options->tunnel_port = checked_strdup(default_tun_port);
     }
 }
 

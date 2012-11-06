@@ -9,9 +9,20 @@
 
 void print_usage(const char* program_name);
 
-void process_options(int argc, char** argv, int* nofork, char** log_filename,
-                     char** remote_host, char** remote_port,
-                     char** proxy_port, char** tun_port,
-                     int* accept_remote);
+struct program_options {
+    /* Remote details */
+    char* remote_host;
+    char* remote_port;
+    /* Local details */
+    char* proxy_port;
+    char* tunnel_port;
+    /* Logging */
+    char* log_filename;
+    /* Option switches */
+    int nofork;
+    int accept_remote;
+};
+
+void process_options(int argc, char** argv, struct program_options* options);
 
 #endif

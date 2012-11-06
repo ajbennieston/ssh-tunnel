@@ -22,9 +22,7 @@
 #include "options.h"
 #include "ssh-control.h"
 
-int tunneld_main(char* ssh_hostname, char* ssh_port,
-                 char* proxy_port, char* tunneld_port,
-                 int accept_remote);
+int tunneld_main(struct program_options* options);
 
 void sig_handler(int signum);
 
@@ -32,20 +30,25 @@ int test_connection(char* proxy_port);
 
 int main(int argc, char** argv)
 {
-    char* remote_hostname = 0;
+    /*char* remote_hostname = 0;
     char* remote_port = 0;
     char* tunneld_port = 0;
     char* proxy_port = 0;
     char* log_filename = 0;
     int nofork = 0;
     int accept_remote = 0;
-    process_options(argc, argv, &nofork, &log_filename, &remote_hostname, &remote_port, &proxy_port, &tunneld_port, &accept_remote);
+    */
+    /* Keep the program options together */
+    struct program_options options;
+    memset(&options, sizeof(struct program_options), 0);
+
+    process_options(argc, argv, &options);
 
     /* Become a daemon, then run tunneld_main() */
 
     /* 1. Fork */
     pid_t process_id = 0;
-    if (! nofork)
+    if (! options.nofork)
         process_id = fork();
 
     if (process_id > 0)
@@ -64,13 +67,13 @@ int main(int argc, char** argv)
     umask(077); /* set umask to something sensible */
 
     /* open a logfile */
-    if (nofork)
+    if (options.nofork)
     {
         logfile = stderr;
     }
-    else if (log_filename != NULL)
+    else if (options.log_filename != NULL)
     {
-        logfile = fopen(log_filename, "a");
+        logfile = fopen(options.log_filename, "a");
         if (logfile == NULL)
         {
             perror("fopen");
@@ -84,7 +87,7 @@ int main(int argc, char** argv)
     }
 
     /* become session leader */
-    if (! nofork)
+    if (! options.nofork)
     {
         pid_t session_id = setsid();
         if (session_id < 0)
@@ -104,7 +107,7 @@ int main(int argc, char** argv)
     /* Close standard file descriptors */
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
-    if (! nofork)
+    if (! options.nofork)
         close(STDERR_FILENO);
 
     /* Set up signal handler */
@@ -119,7 +122,7 @@ int main(int argc, char** argv)
     }
 
     /* Run tunneld_main() */
-    tunneld_main(remote_hostname, remote_port, proxy_port, tunneld_port, accept_remote);
+    tunneld_main(&options);
 
     return 0;
 }
@@ -137,9 +140,7 @@ void sig_handler(int signum)
     }
 }
 
-int tunneld_main(char* ssh_hostname, char* ssh_port,
-                 char* proxy_port, char* tunneld_port,
-                 int accept_remote)
+int tunneld_main(struct program_options* options)
 {
     int socket_fd = 0; /* listen on socket_fd... */
     int new_fd = 0; /*  ... accept new connections -> new_fd */
@@ -157,7 +158,7 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    if (accept_remote)
+    if (options->accept_remote)
     {
         hints.ai_flags = AI_PASSIVE;
     }
@@ -169,13 +170,13 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
 
     /* Use the hints to find address(es) to bind to */
     int gai_result = 0;
-    if (accept_remote)
+    if (options->accept_remote)
     {
-        gai_result = getaddrinfo(NULL, tunneld_port, &hints, &result);
+        gai_result = getaddrinfo(NULL, options->tunnel_port, &hints, &result);
     }
     else
     {
-        gai_result = getaddrinfo("127.0.0.1", tunneld_port, &hints, &result);
+        gai_result = getaddrinfo("127.0.0.1", options->tunnel_port, &hints, &result);
     }
     if(gai_result != 0)
     {
@@ -249,13 +250,13 @@ int tunneld_main(char* ssh_hostname, char* ssh_port,
             if (n_connected == 0)
             {
                 /* no tunnel exists; start it */
-                ssh_tunnel_process = start_ssh_tunnel(ssh_hostname, ssh_port, proxy_port);
+                ssh_tunnel_process = start_ssh_tunnel(options->remote_host, options->remote_port, options->proxy_port);
                 /* Sleep for 1 second then test
                  * connection; repeat until success
                  */
                 do {
                     sleep(1);
-                } while ( test_connection(proxy_port) );
+                } while ( test_connection(options->proxy_port) );
             }
             n_connected += 1;
             write_log_connect(n_connected);
