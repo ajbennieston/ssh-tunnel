@@ -85,6 +85,10 @@ Known Issues
 Changelog
 ---------
 
+2012-11-06 Andrew J. Bennieston
+    * Use a struct to hold program options in ssh-tunneld (tidies up the
+      code a bit)
+
 2012-08-24 Andrew J. Bennieston
     * Ensure that the result of any malloc() or strdup() call is checked
       against NULL
