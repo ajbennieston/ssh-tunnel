@@ -28,6 +28,8 @@ void sig_handler(int signum);
 
 int test_connection(char* proxy_port);
 
+void daemonize(int nofork);
+
 int main(int argc, char** argv)
 {
     /* Keep the program options together */
@@ -35,28 +37,6 @@ int main(int argc, char** argv)
     memset(&options, sizeof(struct program_options), 0);
 
     process_options(argc, argv, &options);
-
-    /* Become a daemon, then run tunneld_main() */
-
-    /* 1. Fork */
-    pid_t process_id = 0;
-    if (! options.nofork)
-        process_id = fork();
-
-    if (process_id > 0)
-    {
-        /* in parent process; exit */
-        _exit(EXIT_SUCCESS);
-    }
-    else if (process_id < 0)
-    {
-        /* Something went wrong */
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-
-    /* If we get here, we're in the child process */
-    umask(077); /* set umask to something sensible */
 
     /* open a logfile */
     if (options.nofork)
@@ -78,31 +58,10 @@ int main(int argc, char** argv)
         logfile = NULL;
     }
 
-    /* become session leader */
-    if (! options.nofork)
-    {
-        pid_t session_id = setsid();
-        if (session_id < 0)
-        {
-            write_log("Could not create session. Exiting.");
-            exit(EXIT_FAILURE);
-        }
-    }   
+    /* Become a daemon */
+    daemonize(options.nofork);
 
-    /* change the working directory */
-    if(chdir("/") < 0)
-    {
-        write_log("Could not change directory to /. Exiting.");
-        exit(EXIT_FAILURE);
-    }
-
-    /* Close standard file descriptors */
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    if (! options.nofork)
-        close(STDERR_FILENO);
-
-    /* Set up signal handler */
+    /* Set up signal handlers */
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
     sa.sa_handler = sig_handler;
@@ -324,4 +283,54 @@ int test_connection(char* proxy_port)
     /* If we got here, we didn't manage to connect successfully */
     freeaddrinfo(result); /* no longer need the address structures */
     return 1;
+}
+
+void daemonize(int nofork)
+{
+    pid_t process_id = 0;
+    if (! nofork)
+        process_id = fork();
+
+    if (process_id > 0)
+    {
+        /* In parent process; exit */
+        _exit(EXIT_SUCCESS);
+    }
+    else if (process_id < 0)
+    {
+        /* Something went wrong */
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
+    /* If we get here, we're in the child process,
+     * or no fork was requested. Now do some other
+     * things to play nicely with others.
+     */
+
+    /* Become the session leader if we forked */
+    if (! nofork)
+    {
+        pid_t session_id = setsid();
+        if (session_id < 0)
+        {
+            write_log("Could not create session. Exiting.");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    umask(077); /* set umask to sensible default */
+
+    /* Change the working directory */
+    if (chdir("/") < 0)
+    {
+        write_log("Could not change directory to /. Exiting.");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Close standard file descriptors */
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    if (! nofork)
+        close(STDERR_FILENO);
 }
