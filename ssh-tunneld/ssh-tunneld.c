@@ -202,8 +202,8 @@ int tunneld_main(struct program_options* options)
             {
                 /* no tunnel exists; start it */
                 ssh_tunnel_process = start_ssh_tunnel(options->remote_host, options->remote_port, options->proxy_port);
-                /* Sleep for 1 second then test
-                 * connection; repeat until success
+                /* Test the connection every second until we
+                 * successfully connect to it
                  */
                 do {
                     sleep(1);
