@@ -23,16 +23,14 @@ void sig_handler(int signum);
 
 int main(int argc, char** argv)
 {
-    char* proxy_host;
-    char* proxy_port;
-    char* ssh_host;
-    char* ssh_port;
+    struct program_options options;
 
-    process_arguments(argc, argv, &proxy_host, &proxy_port, &tunneld_port, &ssh_host, &ssh_port);
+    process_arguments(argc, argv, &options);
     /* Set tunneld_host to point to proxy_host */
-    tunneld_host = proxy_host;
-    size_t phost_len = strlen(proxy_host);
-    size_t pport_len = strlen(proxy_port);
+    tunneld_host = options.proxy_host;
+    tunneld_port = options.tunnel_port;
+    size_t phost_len = strlen(options.proxy_host);
+    size_t pport_len = strlen(options.proxy_port);
     size_t phost_port_len = phost_len + pport_len + 2;
     char* proxy_host_port = malloc(phost_port_len*sizeof(char));
     if (proxy_host_port == NULL)
@@ -44,9 +42,9 @@ int main(int argc, char** argv)
 
     /* Build string "proxyhost:proxyport" and ensure that the
      * resulting string is null-terminated. */
-    strncpy(proxy_host_port, proxy_host, phost_len);
+    strncpy(proxy_host_port, options.proxy_host, phost_len);
     proxy_host_port[phost_len] = ':';
-    strncpy(proxy_host_port+phost_len+1, proxy_port, pport_len);
+    strncpy(proxy_host_port+phost_len+1, options.proxy_port, pport_len);
     proxy_host_port[phost_len+pport_len+1] = '\0';
 
     /* Register a signal handler */
@@ -107,7 +105,7 @@ int main(int argc, char** argv)
     else if (id == 0)
     {
         /* in child process */
-        int status = execlp("nc", "nc", "-X", "5", "-x", proxy_host_port, argv[1], argv[2], (char *) NULL);
+        int status = execlp("nc", "nc", "-X", "5", "-x", proxy_host_port, options.remote_host, options.remote_port, (char *) NULL);
         /* if the exec succeeded, we should never get here */
         if (status == -1)
         {

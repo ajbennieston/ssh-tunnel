@@ -89,6 +89,8 @@ Changelog
     * Move code to fork, set session ID, set umask and close file descriptors
       out of ssh-tunneld main() and into daemonize(); improves potential for
       code reuse as well as tidying up main() somewhat!
+    * Use a struct to hold program arguments in ssh-tunnelc (tidies up the
+      code a bit)
 
 2012-11-06 Andrew J. Bennieston
     * Use a struct to hold program options in ssh-tunneld (tidies up the
