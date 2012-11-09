@@ -21,6 +21,8 @@
 
 void sig_handler(int signum);
 
+char* build_host_port(const char* host, const char* port);
+
 int main(int argc, char** argv)
 {
     struct program_options options;
@@ -29,23 +31,14 @@ int main(int argc, char** argv)
     /* Set tunneld_host to point to proxy_host */
     tunneld_host = options.proxy_host;
     tunneld_port = options.tunnel_port;
-    size_t phost_len = strlen(options.proxy_host);
-    size_t pport_len = strlen(options.proxy_port);
-    size_t phost_port_len = phost_len + pport_len + 2;
-    char* proxy_host_port = malloc(phost_port_len*sizeof(char));
+    char* proxy_host_port = build_host_port(options.proxy_host,
+            options.proxy_port);
     if (proxy_host_port == NULL)
     {
         /* malloc() failed */
         fprintf(stderr, "Unable to allocate memory. Exiting.\n");
         return EXIT_FAILURE;
     }
-
-    /* Build string "proxyhost:proxyport" and ensure that the
-     * resulting string is null-terminated. */
-    strncpy(proxy_host_port, options.proxy_host, phost_len);
-    proxy_host_port[phost_len] = ':';
-    strncpy(proxy_host_port+phost_len+1, options.proxy_port, pport_len);
-    proxy_host_port[phost_len+pport_len+1] = '\0';
 
     /* Register a signal handler */
     struct sigaction sa;
@@ -139,5 +132,24 @@ void sig_handler(int signum)
     }
 }
 
+char* build_host_port(const char* host, const char* port)
+{
+    /* Obtain sufficient memory */
+    size_t host_len = strlen(host);
+    size_t port_len = strlen(port);
+    size_t result_len = host_len + port_len + 2; /* colon and null char */
+    char* result = malloc(result_len * sizeof(char));
+    if (result == NULL)
+    {
+        /* malloc() failed */
+        return NULL;
+    }
 
+    /* Build the string "host:port" and ensure that it is null-terminated */
+    strncpy(result, host, host_len);
+    result[host_len] = ':';
+    strncpy(result + host_len + 1, port, port_len);
+    result[host_len + port_len + 1] = '\0';
+    return result;
+}
 
