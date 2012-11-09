@@ -22,6 +22,7 @@
 void sig_handler(int signum);
 
 char* build_host_port(const char* host, const char* port);
+void register_signal_handlers();
 
 int main(int argc, char** argv)
 {
@@ -39,33 +40,10 @@ int main(int argc, char** argv)
         fprintf(stderr, "Unable to allocate memory. Exiting.\n");
         return EXIT_FAILURE;
     }
-
-    /* Register a signal handler */
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(struct sigaction));
-    sa.sa_handler = sig_handler;
-    sigaddset(&(sa.sa_mask), SIGTERM);
-    sigaddset(&(sa.sa_mask), SIGCHLD);
-    sigaddset(&(sa.sa_mask), SIGHUP);
-    sigaddset(&(sa.sa_mask), SIGINT);
-    sa.sa_flags = SA_NOCLDSTOP;
-    if (sigaction(SIGCHLD, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-    if (sigaction(SIGTERM, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-    if (sigaction(SIGHUP, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-    if (sigaction(SIGINT, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-
+    
+    /* Deal with SIGTERM, SIGCHLD, SIGHUP and SIGINT */
+    register_signal_handlers();
+    
     /* Send a message to ssh-tunneld telling it we
      * want to open an ssh connection through the tunnel
      * While we do this, block SIGINT and SIGTERM so
@@ -153,3 +131,31 @@ char* build_host_port(const char* host, const char* port)
     return result;
 }
 
+void register_signal_handlers()
+{
+    /* Register a signal handler */
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = sig_handler;
+    sigaddset(&(sa.sa_mask), SIGTERM);
+    sigaddset(&(sa.sa_mask), SIGCHLD);
+    sigaddset(&(sa.sa_mask), SIGHUP);
+    sigaddset(&(sa.sa_mask), SIGINT);
+    sa.sa_flags = SA_NOCLDSTOP;
+    if (sigaction(SIGCHLD, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+    if (sigaction(SIGTERM, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+    if (sigaction(SIGHUP, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+    if (sigaction(SIGINT, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+}
