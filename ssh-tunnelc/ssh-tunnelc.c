@@ -95,22 +95,6 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
-void sig_handler(int signum)
-{
-    switch (signum)
-    {
-        case SIGCHLD:
-        case SIGTERM:
-        case SIGINT:
-        case SIGHUP:
-            connection_stop();
-            exit(EXIT_SUCCESS);
-            break;
-        default:
-            break;
-    }
-}
-
 char* build_host_port(const char* host, const char* port)
 {
     /* Obtain sufficient memory */
@@ -134,7 +118,6 @@ char* build_host_port(const char* host, const char* port)
 
 void register_signal_handlers()
 {
-    /* Register a signal handler */
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
     sa.sa_handler = sig_handler;
@@ -160,3 +143,21 @@ void register_signal_handlers()
         perror("sigaction");
     }
 }
+
+void sig_handler(int signum)
+{
+    switch (signum)
+    {
+        case SIGCHLD:
+        case SIGTERM:
+        case SIGINT:
+        case SIGHUP:
+            connection_stop();
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            break;
+    }
+}
+
+
