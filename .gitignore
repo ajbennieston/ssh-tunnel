@@ -1,1 +1,3 @@
 *.o
+ssh-tunnelc
+ssh-tunneld
