@@ -85,6 +85,10 @@ Known Issues
 Changelog
 ---------
 
+2012-11-28 Andrew J. Bennieston
+    * ssh-tunnel compiles on a Raspberry Pi running "Raspbian Wheezy"
+      using gcc 4.6 (without any changes!)
+
 2012-11-09 Andrew J. Bennieston
     * Move signal handler registration out of main() in ssh-tunnelc
     * Move "host:port" string building code out of main() in ssh-tunnelc
