@@ -5,7 +5,8 @@ SRCS=	logging.c \
 		ssh-control.c \
 		ssh-tunneld.c
 
-CFLAGS+=	-Wall -Wextra -std=c99 -pedantic
+CSTD=		c99
+CFLAGS+=	-Wall -Wextra -pedantic
 
 MAN=
 
