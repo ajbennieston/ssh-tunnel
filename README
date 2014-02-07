@@ -89,16 +89,14 @@ indicates platforms on which ssh-tunnel has been tested and is known to work.
 If you have tested ssh-tunnel on a platform that is not listed, please submit
 a pull request adding that platform to the list.
 
-| OS Distribution                  | x86 | x86_64 |
-|----------------------------------|-----|--------|
-| Apple OS X 10.7 (Lion)           | *   |        |
-| Apple OS X 10.8 (Mountain Lion)  |     | *      |
-| Apple OS X 10.9 (Mavericks)      |     | *      |
-| Debian GNU/Linux 6.x (Squeeze)   | *   | *      |
-| Debian GNU/Linux 7.x (Wheezy)    |     | *      |
-| FreeBSD 9.x                      | *   | *      |
-| FreeBSD 10.x                     |     | *      |
-| OpenSuSE 12.x                    | *   | *      |
+* Debian 6.x (Squeeze)
+* Debian 7.x (Wheezy)
+* FreeBSD 9.x
+* FreeBSD 10.x
+* Mac OS X 10.7 (Lion)
+* Mac OS X 10.8 (Mountain Lion)
+* Mac OS X 10.9 (Mavericks)
+* OpenSuSE 12.x
 
 ---------
 Changelog
