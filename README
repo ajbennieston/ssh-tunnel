@@ -97,6 +97,7 @@ a pull request adding that platform to the list.
 * Mac OS X 10.8 (Mountain Lion) [x86_64]
 * Mac OS X 10.9 (Mavericks) [x86_64]
 * OpenSuSE 12.x [x86, x86_64]
+* Raspbian Wheezy [armv6]
 
 ---------
 Changelog
