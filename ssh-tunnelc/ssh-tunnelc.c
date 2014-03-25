@@ -121,6 +121,9 @@ int main(int argc, char** argv)
          * of the child. Wait for it to finish.
          */
         wait(NULL);
+
+        if (proxy_host_port != NULL)
+            free(proxy_host_port);
     }
     return EXIT_SUCCESS;
 }
