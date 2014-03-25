@@ -21,60 +21,29 @@
 
 void sig_handler(int signum);
 
+char* build_host_port(const char* host, const char* port);
+void register_signal_handlers();
+
 int main(int argc, char** argv)
 {
-    char* proxy_host;
-    char* proxy_port;
-    char* ssh_host;
-    char* ssh_port;
+    struct program_options options;
 
-    process_arguments(argc, argv, &proxy_host, &proxy_port, &tunneld_port, &ssh_host, &ssh_port);
+    process_arguments(argc, argv, &options);
     /* Set tunneld_host to point to proxy_host */
-    tunneld_host = proxy_host;
-    size_t phost_len = strlen(proxy_host);
-    size_t pport_len = strlen(proxy_port);
-    size_t phost_port_len = phost_len + pport_len + 2;
-    char* proxy_host_port = malloc(phost_port_len*sizeof(char));
+    tunneld_host = options.proxy_host;
+    tunneld_port = options.tunnel_port;
+    char* proxy_host_port = build_host_port(options.proxy_host,
+            options.proxy_port);
     if (proxy_host_port == NULL)
     {
         /* malloc() failed */
         fprintf(stderr, "Unable to allocate memory. Exiting.\n");
         return EXIT_FAILURE;
     }
-
-    /* Build string "proxyhost:proxyport" and ensure that the
-     * resulting string is null-terminated. */
-    strncpy(proxy_host_port, proxy_host, phost_len);
-    proxy_host_port[phost_len] = ':';
-    strncpy(proxy_host_port+phost_len+1, proxy_port, pport_len);
-    proxy_host_port[phost_len+pport_len+1] = '\0';
-
-    /* Register a signal handler */
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(struct sigaction));
-    sa.sa_handler = sig_handler;
-    sigaddset(&(sa.sa_mask), SIGTERM);
-    sigaddset(&(sa.sa_mask), SIGCHLD);
-    sigaddset(&(sa.sa_mask), SIGHUP);
-    sigaddset(&(sa.sa_mask), SIGINT);
-    sa.sa_flags = SA_NOCLDSTOP;
-    if (sigaction(SIGCHLD, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-    if (sigaction(SIGTERM, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-    if (sigaction(SIGHUP, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-    if (sigaction(SIGINT, &sa, NULL) != 0)
-    {
-        perror("sigaction");
-    }
-
+    
+    /* Deal with SIGTERM, SIGCHLD, SIGHUP and SIGINT */
+    register_signal_handlers();
+    
     /* Send a message to ssh-tunneld telling it we
      * want to open an ssh connection through the tunnel
      * While we do this, block SIGINT and SIGTERM so
@@ -107,7 +76,8 @@ int main(int argc, char** argv)
     else if (id == 0)
     {
         /* in child process */
-        int status = execlp("nc", "nc", "-X", "5", "-x", proxy_host_port, argv[1], argv[2], (char *) NULL);
+        int status = execlp("nc", "nc", "-X", "5", "-x", proxy_host_port,
+                options.remote_host, options.remote_port, (char *) NULL);
         /* if the exec succeeded, we should never get here */
         if (status == -1)
         {
@@ -128,6 +98,55 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
+char* build_host_port(const char* host, const char* port)
+{
+    /* Obtain sufficient memory */
+    size_t host_len = strlen(host);
+    size_t port_len = strlen(port);
+    size_t result_len = host_len + port_len + 2; /* colon and null char */
+    char* result = malloc(result_len * sizeof(char));
+    if (result == NULL)
+    {
+        /* malloc() failed */
+        return NULL;
+    }
+
+    /* Build the string "host:port" and ensure that it is null-terminated */
+    strncpy(result, host, host_len);
+    result[host_len] = ':';
+    strncpy(result + host_len + 1, port, port_len);
+    result[host_len + port_len + 1] = '\0';
+    return result;
+}
+
+void register_signal_handlers()
+{
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = sig_handler;
+    sigaddset(&(sa.sa_mask), SIGTERM);
+    sigaddset(&(sa.sa_mask), SIGCHLD);
+    sigaddset(&(sa.sa_mask), SIGHUP);
+    sigaddset(&(sa.sa_mask), SIGINT);
+    sa.sa_flags = SA_NOCLDSTOP;
+    if (sigaction(SIGCHLD, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+    if (sigaction(SIGTERM, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+    if (sigaction(SIGHUP, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+    if (sigaction(SIGINT, &sa, NULL) != 0)
+    {
+        perror("sigaction");
+    }
+}
+
 void sig_handler(int signum)
 {
     switch (signum)
@@ -143,6 +162,5 @@ void sig_handler(int signum)
             break;
     }
 }
-
 
 

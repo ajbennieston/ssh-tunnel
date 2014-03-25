@@ -81,9 +81,46 @@ Known Issues
    One option might be some kind of keep-alive approach, but I have no
    plans to implement this any time soon.
 
+-------------------
+Supported Platforms
+-------------------
+ssh-tunnel should work on most POSIX compliant platforms. The list below
+indicates platforms on which ssh-tunnel has been tested and is known to work.
+If you have tested ssh-tunnel on a platform that is not listed, please submit
+a pull request adding that platform to the list.
+
+* Debian 6.x (Squeeze) [x86_64]
+* Debian 7.x (Wheezy) [x86_64]
+* FreeBSD 9.x [x86_64]
+* FreeBSD 10.x [x86_64]
+* Mac OS X 10.7 (Lion) [x86_64]
+* Mac OS X 10.8 (Mountain Lion) [x86_64]
+* Mac OS X 10.9 (Mavericks) [x86_64]
+* OpenSuSE 12.x [x86_64]
+* Raspbian Wheezy [armv6]
+
 ---------
 Changelog
 ---------
+
+2012-11-28 Andrew J. Bennieston
+    * ssh-tunnel compiles on a Raspberry Pi running "Raspbian Wheezy"
+      using gcc 4.6 (without any changes!)
+
+2012-11-09 Andrew J. Bennieston
+    * Move signal handler registration out of main() in ssh-tunnelc
+    * Move "host:port" string building code out of main() in ssh-tunnelc
+
+2012-11-07 Andrew J. Bennieston
+    * Move code to fork, set session ID, set umask and close file descriptors
+      out of ssh-tunneld main() and into daemonize(); improves potential for
+      code reuse as well as tidying up main() somewhat!
+    * Use a struct to hold program arguments in ssh-tunnelc (tidies up the
+      code a bit)
+
+2012-11-06 Andrew J. Bennieston
+    * Use a struct to hold program options in ssh-tunneld (tidies up the
+      code a bit)
 
 2012-08-24 Andrew J. Bennieston
     * Ensure that the result of any malloc() or strdup() call is checked

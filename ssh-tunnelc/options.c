@@ -38,8 +38,7 @@ void print_usage(const char* program_name)
             " -t port\n    ssh-tunneld control port.\n    Default: 1081.\n\n");
 }
 
-void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_port,
-                       char** tun_port, char** ssh_host, char** ssh_port)
+void process_arguments(int argc, char** argv, struct program_options* options)
 {
     /*
      * Usage: progname [-h hostname] [-p port] [-t port] ssh_hostname ssh_port
@@ -69,21 +68,21 @@ void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_po
                 /* Set proxy host */
                 if (! set_proxy_host)
                 {
-                    *proxy_host = optarg;
+                    options->proxy_host = optarg;
                     set_proxy_host = 1;
                 }
                 break;
             case 'p':
                 if (! set_proxy_port)
                 {
-                    *proxy_port = optarg;
+                    options->proxy_port = optarg;
                     set_proxy_port = 1;
                 }
                 break;
             case 't':
                 if (! set_tun_port)
                 {
-                    *tun_port = optarg;
+                    options->tunnel_port = optarg;
                     set_tun_port = 1;
                 }
                 break;
@@ -100,23 +99,23 @@ void process_arguments(int argc, char** argv, char** proxy_host, char** proxy_po
         exit(EXIT_FAILURE);
     }
     /* The remaining options should now be the ssh host and port */
-    *ssh_host = argv[optind];
-    *ssh_port = argv[optind+1];
+    options->remote_host = argv[optind];
+    options->remote_port = argv[optind+1];
 
     /* And set default values if we didn't receive them from the options */
     if (! set_proxy_host)
     {
         char* default_proxy_host = "127.0.0.1";
-        *proxy_host = checked_strdup(default_proxy_host);
+        options->proxy_host = checked_strdup(default_proxy_host);
     }
     if (! set_proxy_port)
     {
         char* default_proxy_port = "1080";
-        *proxy_port = checked_strdup(default_proxy_port);
+        options->proxy_port = checked_strdup(default_proxy_port);
     }
     if (! set_tun_port)
     {
         char* default_tun_port = "1081";
-        *tun_port = checked_strdup(default_tun_port);
+        options->tunnel_port = checked_strdup(default_tun_port);
     }
 }
