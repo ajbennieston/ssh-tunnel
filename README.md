@@ -4,7 +4,7 @@ ssh-tunnel
 
 [![Build Status](https://travis-ci.org/ajbennieston/ssh-tunnel.svg?branch=master)](https://travis-ci.org/ajbennieston/ssh-tunnel)
 
-Copyright (c) 2012 Andrew J. Bennieston
+Copyright (c) 2012 - 2017 Andrew J. Bennieston
 
 https://github.com/ajbennieston/ssh-tunnel
 
