@@ -1,4 +1,4 @@
-CFLAGS=-Wall -Wextra -std=c99 -pedantic
+CFLAGS=-Wall -Wextra -std=c11 -pedantic
 OBJECTS:=$(patsubst %.c,%.o,$(wildcard *.c))
 
 all: ssh-tunneld

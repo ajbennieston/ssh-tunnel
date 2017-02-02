@@ -4,7 +4,7 @@ SRCS=	control.c \
 		options.c \
 		ssh-tunnelc.c
 
-CSTD=		c99
+CSTD=		c11
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
 
 MAN=
