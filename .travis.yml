@@ -1,0 +1,7 @@
+compiler:
+    - gcc
+
+language: c
+
+script:
+    - make
