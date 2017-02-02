@@ -5,7 +5,9 @@ ssh-tunnel
 [![Build Status](https://travis-ci.org/ajbennieston/ssh-tunnel.svg?branch=master)](https://travis-ci.org/ajbennieston/ssh-tunnel)
 
 Copyright (c) 2012 Andrew J. Bennieston
+
 https://github.com/ajbennieston/ssh-tunnel
+
 Released under the BSD license. Details below.
 
 "On-demand SSH tunnelling with a client-server architecture."
@@ -105,69 +107,69 @@ a pull request adding that platform to the list.
 Changelog
 ---------
 2017-02-02 Andrew J. Bennieston
-    * Add continuous integration via Travis-CI.
-    * Build using -std=c11 instead of -std=c99.
+ * Add continuous integration via Travis-CI.
+ * Build using -std=c11 instead of -std=c99.
     
 2012-11-28 Andrew J. Bennieston
-    * ssh-tunnel compiles on a Raspberry Pi running "Raspbian Wheezy"
-      using gcc 4.6 (without any changes!)
+ * ssh-tunnel compiles on a Raspberry Pi running "Raspbian Wheezy"
+   using gcc 4.6 (without any changes!)
 
 2012-11-09 Andrew J. Bennieston
-    * Move signal handler registration out of main() in ssh-tunnelc
-    * Move "host:port" string building code out of main() in ssh-tunnelc
+ * Move signal handler registration out of main() in ssh-tunnelc
+ * Move "host:port" string building code out of main() in ssh-tunnelc
 
 2012-11-07 Andrew J. Bennieston
-    * Move code to fork, set session ID, set umask and close file descriptors
-      out of ssh-tunneld main() and into daemonize(); improves potential for
-      code reuse as well as tidying up main() somewhat!
-    * Use a struct to hold program arguments in ssh-tunnelc (tidies up the
-      code a bit)
+ * Move code to fork, set session ID, set umask and close file descriptors
+   out of ssh-tunneld main() and into daemonize(); improves potential for
+   code reuse as well as tidying up main() somewhat!
+ * Use a struct to hold program arguments in ssh-tunnelc (tidies up the
+   code a bit)
 
 2012-11-06 Andrew J. Bennieston
-    * Use a struct to hold program options in ssh-tunneld (tidies up the
-      code a bit)
+ * Use a struct to hold program options in ssh-tunneld (tidies up the
+   code a bit)
 
 2012-08-24 Andrew J. Bennieston
-    * Ensure that the result of any malloc() or strdup() call is checked
-      against NULL
-    * Ensure that any strncpy() call results in a correctly null-terminated
-      string
-    * Change umask of child process to 077 in ssh-tunneld
+ * Ensure that the result of any malloc() or strdup() call is checked
+   against NULL
+ * Ensure that any strncpy() call results in a correctly null-terminated
+   string
+ * Change umask of child process to 077 in ssh-tunneld
 
 2012-07-30 Andrew J. Bennieston
-    * Use (char *) NULL instead of plain NULL to terminate execlp(...);
+ * Use (char *) NULL instead of plain NULL to terminate execlp(...);
 
 2012-06-10 Andrew J. Bennieston
-    * Better initialisation of variables in ssh-tunneld.c
-    * Rearranged logic on if() .. elseif() .. else when
-      forking child process
+ * Better initialisation of variables in ssh-tunneld.c
+ * Rearranged logic on if() .. elseif() .. else when
+   forking child process
 
 2012-06-09 Andrew J. Bennieston
-    * Improved handling of client quit due to SIGTERM or SIGINT
+ * Improved handling of client quit due to SIGTERM or SIGINT
 
 2012-06-08 Andrew J. Bennieston
-    * Updated to compile without warnings on Mac OS X Lion using either
-      clang or llvm-gcc
-    * Added BSD-style Makefiles to support BSD Make as well as GNU Make
-    * Added comments to top of every header / source file to identify
-      it as part of ssh-tunnel
-    * Reduced the number of times strdup() is used when processing
-      command-line options
+ * Updated to compile without warnings on Mac OS X Lion using either
+   clang or llvm-gcc
+ * Added BSD-style Makefiles to support BSD Make as well as GNU Make
+ * Added comments to top of every header / source file to identify
+   it as part of ssh-tunnel
+ * Reduced the number of times strdup() is used when processing
+   command-line options
 
 2012-03-21 Andrew J. Bennieston
-    * Split ssh-tunnelc.c across multiple files to improve ease of
-      navigation
-    * Modified ssh-tunnelc/Makefile to build any .c files in that
-      directory then link them together into the ssh-tunnelc binary
+ * Split ssh-tunnelc.c across multiple files to improve ease of
+   navigation
+ * Modified ssh-tunnelc/Makefile to build any .c files in that
+   directory then link them together into the ssh-tunnelc binary
 
 2012-03-20 Andrew J. Bennieston
-    * Improved security of control socket by binding to localhost only
-      (by default)
-    * Provided command-line option (-r) to allow binding to * (all
-      interfaces) for control socket
-    * Changed tabs to spaces in ssh-tunnelc.c and ssh-tunneld.c
-
---------
+ * Improved security of control socket by binding to localhost only
+   (by default)
+ * Provided command-line option (-r) to allow binding to * (all
+   interfaces) for control socket
+ * Changed tabs to spaces in ssh-tunnelc.c and ssh-tunneld.c
+ 
+---------
 License:
 --------
 Copyright (c) 2012, Andrew J. Bennieston
