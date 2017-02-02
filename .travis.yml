@@ -15,5 +15,8 @@ addons:
     packages:
     - gcc-5
 
+install:
+    - if [ "$CC" == "gcc" ] ; then export CC="gcc-5"; fi
+    
 script:
     - make
