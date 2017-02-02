@@ -1,7 +1,12 @@
 compiler:
     - gcc
+    - clang
 
 language: c
 
+os:
+    - linux
+    - osx
+
 script:
-    - make -j 4
+    - make
