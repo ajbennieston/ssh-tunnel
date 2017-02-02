@@ -2,16 +2,13 @@
 ssh-tunnel
 ==========
 
+[![Build Status](https://travis-ci.org/ajbennieston/ssh-tunnel.svg?branch=master)](https://travis-ci.org/ajbennieston/ssh-tunnel)
+
 Copyright (c) 2012 Andrew J. Bennieston
 https://github.com/ajbennieston/ssh-tunnel
 Released under the BSD license. Details below.
 
 "On-demand SSH tunnelling with a client-server architecture."
-
-------
-Build:
-------
-[![Build Status](https://travis-ci.org/ajbennieston/ssh-tunnel.svg?branch=master)](https://travis-ci.org/ajbennieston/ssh-tunnel)
 
 ---------
 Overview:
