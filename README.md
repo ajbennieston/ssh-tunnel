@@ -104,7 +104,10 @@ a pull request adding that platform to the list.
 ---------
 Changelog
 ---------
-
+2017-02-02 Andrew J. Bennieston
+    * Add continuous integration via Travis-CI.
+    * Build using -std=c11 instead of -std=c99.
+    
 2012-11-28 Andrew J. Bennieston
     * ssh-tunnel compiles on a Raspberry Pi running "Raspbian Wheezy"
       using gcc 4.6 (without any changes!)
