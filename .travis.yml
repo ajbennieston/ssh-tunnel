@@ -4,4 +4,4 @@ compiler:
 language: c
 
 script:
-    - make
+    - make -j
