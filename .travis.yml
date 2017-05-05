@@ -16,7 +16,7 @@ addons:
     - gcc-5
 
 before_install:
-    - if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew update && brew install gcc ; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ $"CC" == "gcc" ] ; then brew update && brew install gcc ; fi
 
 install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc" ] ; then export CC="gcc-5"; fi
