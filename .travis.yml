@@ -20,6 +20,7 @@ before_install:
 
 install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc" ] ; then export CC="gcc-5"; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "CC" == "gcc" ] ; then export CC="gcc-7" ; fi
     
 script:
     - $CC --version
