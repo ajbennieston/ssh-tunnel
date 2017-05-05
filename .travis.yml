@@ -22,4 +22,5 @@ install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc" ] ; then export CC="gcc-5"; fi
     
 script:
+    - $CC --version
     - make
