@@ -1,4 +1,3 @@
-==========
 ssh-tunnel
 ==========
 
@@ -12,7 +11,6 @@ Released under the BSD license. Details below.
 
 "On-demand SSH tunnelling with a client-server architecture."
 
----------
 Overview:
 ---------
 ssh-tunneld is a daemon process which listens on tcp/1081 (by default)
@@ -32,7 +30,6 @@ the same "ssh -D" tunnel is used for all clients. If the count drops to 0,
 the tunnel is closed (SIGTERM is sent to the ssh process), and a
 subsequent client connect would result in a new tunnel being established.
 
--------------
 Requirements:
 -------------
  1. public key (or other passwordless) access to the host being used as the
@@ -47,7 +44,6 @@ Requirements:
  3. (Dynamic) SSH forwarding enabled on the proxy host (remote host of the
     "ssh -D" command). Note this also requires SSH Protocol version 2.
 
-------
 Usage:
 ------
  1. Type 'make' to build the client (ssh-tunnelc) and server (ssh-tunneld) in
@@ -76,7 +72,6 @@ Usage:
     as normal, and ssh-tunnelc will tell ssh-tunneld to tear down the tunnel
     (unless something else is still using it).
 
-------------
 Known Issues
 ------------
 
@@ -85,7 +80,6 @@ Known Issues
    One option might be some kind of keep-alive approach, but I have no
    plans to implement this any time soon.
 
--------------------
 Supported Platforms
 -------------------
 ssh-tunnel should work on most POSIX compliant platforms. The list below
@@ -103,9 +97,11 @@ a pull request adding that platform to the list.
 * OpenSuSE 12.x [x86_64]
 * Raspbian Wheezy [armv6]
 
----------
 Changelog
 ---------
+2017-05-05 Andrew J. Bennieston
+* Fix incorrect call to `memset` in ssh-tunneld.c.
+
 2017-02-02 Andrew J. Bennieston
  * Add continuous integration via Travis-CI.
  * Build using -std=c11 instead of -std=c99.
