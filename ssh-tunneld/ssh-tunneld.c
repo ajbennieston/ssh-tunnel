@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 {
     /* Keep the program options together */
     struct program_options options;
-    memset(&options, sizeof(struct program_options), 0);
+    memset(&options, 0, sizeof(struct program_options));
 
     process_options(argc, argv, &options);
 
