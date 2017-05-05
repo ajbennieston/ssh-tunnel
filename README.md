@@ -11,8 +11,8 @@ Released under the BSD license. Details below.
 
 "On-demand SSH tunnelling with a client-server architecture."
 
-Overview:
----------
+Overview
+--------
 ssh-tunneld is a daemon process which listens on tcp/1081 (by default)
 for connections from ssh-tunnelc (the client). When a client requests
 an SSH tunnel, the ssh-tunneld process will open an SSH connection to
@@ -30,8 +30,8 @@ the same "ssh -D" tunnel is used for all clients. If the count drops to 0,
 the tunnel is closed (SIGTERM is sent to the ssh process), and a
 subsequent client connect would result in a new tunnel being established.
 
-Requirements:
--------------
+Requirements
+------------
  1. public key (or other passwordless) access to the host being used as the
     remote end of the dynamic forwarding. This can be done with passwordless
     keys (not recommended) or keys which are available in an ssh-agent that
@@ -44,8 +44,8 @@ Requirements:
  3. (Dynamic) SSH forwarding enabled on the proxy host (remote host of the
     "ssh -D" command). Note this also requires SSH Protocol version 2.
 
-Usage:
-------
+Usage
+-----
  1. Type 'make' to build the client (ssh-tunnelc) and server (ssh-tunneld) in
     their respective directories. This works with either BSD Make or GNU Make.
  
