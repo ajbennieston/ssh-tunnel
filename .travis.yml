@@ -20,7 +20,7 @@ before_install:
 
 install:
     - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc" ] ; then export CC="gcc-5"; fi
-    - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$CC" == "gcc" ] ; then export CC="gcc-7.1" ; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$CC" == "gcc" ] ; then export CC="/usr/local/Cellar/gcc/7.1.0/bin/gcc-7" ; fi
     
 script:
     - $CC --version
